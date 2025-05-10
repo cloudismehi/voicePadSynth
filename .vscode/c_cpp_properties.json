@@ -4,7 +4,9 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/Users/fernandosanchez/development/third-libs/raylib/src"
+                "/Users/fernandosanchez/development/third-libs/raylib/src",
+                "/Users/fernandosanchez/development/third-libs/portaudio/include",
+                "${workspaceFolder}/include"
             ],
             "defines": [],
             "cStandard": "c17",
