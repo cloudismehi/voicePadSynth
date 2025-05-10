@@ -22,7 +22,7 @@ i want to keep this from being too mouse-based - a big problem with computer mus
 it'll be modifiable and adaptible, but the options to customize it are not going to be accesible in the same page as all of the perfomance elements will be, i want the user to grow into the experience but not be constantly bombarded with choices by the UI. 
 
 ### _dependencies_
-**raylib** will handle the visuals, user input, and all UI. **PortAudio** will handle the audio output (and further audio settings). **PortMidi** could be used to handle all midi note input (and maybe output in the future). 
+**raylib** will handle the visuals, user input, and all UI. **Raudio** will handle the audio output (and further audio settings). **PortMidi** could be used to handle all midi note input (and maybe output in the future). 
 
 ### _as of right now_
 nothing is coded :p 
