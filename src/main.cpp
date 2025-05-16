@@ -1,18 +1,30 @@
 #include <iostream>
+#include <math.h> 
 
 #include <raylib.h>
 #include <portaudio.h> 
-#include "Voices.hpp"
+
+#include "audioHandling.hpp"
+#include "projectSettings.hpp"
+
 
 int main(){
-	InitWindow(1000, 1000, "this is a life"); 
-	SetTargetFPS(30); 
+	Audio audioInstance; 
+	
+	Voice voice(sampleRate, bitDepth, 3); 	
+	voice.setFrequencyMidi(0, 60); 
+	voice.setFrequencyMidi(1, 64); 
+	voice.setFrequencyMidi(2, 67); 
 
-	while(!WindowShouldClose()){
-		BeginDrawing(); 
-		ClearBackground(WHITE); 
-		EndDrawing(); 
-	}
+	Pa_Initialize(); 
+	
+	audioInstance.init(sampleRate, framesPerBuffer, voice); 
+	audioInstance.startAudio(); 
+	Pa_Sleep(1000); 
+	audioInstance.deinit(); 
+
+	voice.deallocate(); 
 
 	return 0; 
 }
+

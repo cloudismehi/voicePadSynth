@@ -3,10 +3,11 @@ raylib_lib = -L/Users/fernandosanchez/development/third-libs/raylib/src -l rayli
 raylib_dep = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 
 portaudio_inc = -I/Users/fernandosanchez/development/third-libs/audio/portaudio/include
-portaudio_lib = -L/Users/fernandosanchez/development/third-libs/audio/portaudio/build -l portaudio
+portaudio_lib = -L/Users/fernandosanchez/development/third-libs/audio/portaudio/build -lportaudio
+portaudio_dep = -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework CoreServices
 
-voicePadSynth: Voices.o voicePadSynth.o
-	@g++ -std=c++20  ${raylib_dep} ${raylib_lib} ${portaudio_lib} src/obj/Voices.o src/obj/voicePadSynth.o -o voicePadSynth
+voicePadSynth: audioHandling.o voicePadSynth.o
+	@g++ -std=c++20  ${raylib_dep} ${raylib_lib} ${portaudio_dep} ${portaudio_lib} src/obj/audioHandling.o src/obj/voicePadSynth.o -o voicePadSynth
 	@mv voicePadSynth execs
 	@echo "built project!"
 	
@@ -17,3 +18,7 @@ voicePadSynth.o: src/main.cpp
 Voices.o: src/Voices.cpp
 	@g++ -std=c++20 src/Voices.cpp -I ./include -c -o Voices.o 
 	@mv Voices.o src/obj
+
+audioHandling.o: src/audioHandling.cpp
+	@g++ -std=c++20 src/audioHandling.cpp ${portaudio_inc} -I ./include -c -o audioHandling.o 
+	@mv audioHandling.o src/obj
