@@ -1,6 +1,6 @@
 #include "audioHandling.hpp"
 
-AudioData audioData; 
+AudioData audioData;
 
 float Voice::midiToFreq(int _note){
     return 440.f * exp((log(2) * (_note - 69))/12); 
@@ -52,6 +52,36 @@ bool Voice::setFrequencyMidi(int _voice, int _note){
     }
     return true; 
 }
+
+/* ******************************************************************************** */
+
+void SineOscillator::init(){
+	offset = new float[numVoices]; 
+	incr = new float[numVoices]; 
+}
+
+void SineOscillator::updateParams(){
+	for (int i = 0; i < numVoices; i++){
+		incr[i] = frequency[i]/sampleRate; 
+	}
+}
+
+float SineOscillator::genValue() const{
+	float out = 0.f; 
+	for (int i = 0; i < numVoices; i++){
+		out += amp[i] * sinf(2 * M_PI * offset[i]); 
+		if ((offset[i] += incr[i]) >= 1.f) offset[i] = 0.f; 
+	}
+	return out; 
+}
+
+SineOscillator::~SineOscillator(){
+	delete[] offset; 
+	delete[] incr; 
+}
+
+
+
 
 /* ******************************************************************************** */
 
@@ -107,4 +137,10 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
 	}
 
 	return 0; 
+}
+
+/* ******************************************************************************** */
+
+void useDefaultOsc(int sampleRate, int framesPerBuffer, int numVoices){
+    audioData.oscillator = std::make_unique<SineOscillator>(sampleRate, framesPerBuffer, numVoices); 
 }

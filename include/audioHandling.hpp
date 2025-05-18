@@ -25,6 +25,19 @@ class Voice{
     bool setFrequencyMidi(int _voice, int _note); //set frequency with midi note input 
 }; 
 
+class SineOscillator : public Voice{
+	public:
+	float *offset, *incr; 
+	
+	SineOscillator(int _sampleRate, int _bitDepth, int _numVoices) : Voice(_sampleRate, _bitDepth, _numVoices) {
+		init(); 
+	}
+	void init(); 
+	float genValue() const override; 
+	~SineOscillator() override; 
+	void updateParams() override; 
+}; 
+
 struct AudioData {
     std::unique_ptr<Voice> oscillator; 
 }; 
@@ -45,3 +58,5 @@ class Audio{
 	    unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo, 
 	    PaStreamCallbackFlags flags, void* userInfo); //port audio callback function
 };
+
+void useDefaultOsc(int sampleRate, int framesPerBuffer, int numVoices); 
