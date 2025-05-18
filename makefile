@@ -15,10 +15,6 @@ voicePadSynth.o: src/main.cpp
 	@g++ -std=c++20 ${raylib_inc} ${portaudio_inc} -I ./include src/main.cpp -c -o voicePadSynth.o
 	@mv voicePadSynth.o src/obj
 
-Voices.o: src/Voices.cpp
-	@g++ -std=c++20 src/Voices.cpp -I ./include -c -o Voices.o 
-	@mv Voices.o src/obj
-
 audioHandling.o: src/audioHandling.cpp
 	@g++ -std=c++20 src/audioHandling.cpp ${portaudio_inc} -I ./include -c -o audioHandling.o 
 	@mv audioHandling.o src/obj

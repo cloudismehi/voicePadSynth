@@ -1,9 +1,8 @@
 #include <iostream>
+#include <memory>
 #include <math.h> 
 #include <raylib.h>
 #include <portaudio.h> 
-
-#include <memory>
 
 #include "audioHandling.hpp"
 #include "projectSettings.hpp"
