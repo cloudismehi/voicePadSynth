@@ -1,28 +1,32 @@
 #include <iostream>
 #include <math.h>
-#include <vector>
+#include <memory>
 #include "portaudio.h"
 
+
 class Voice{
-    //sine wave generator
-private: 
-    
-    float *offset, *idx; 
-    int sampleRate, bitDepth, maxAmp; 
-    
-    void calculateOffset(); //calculate offset for sine function
-    float midiToFreq(int _note); //midi note to frequency
-public:     
-    int numVoices = 1; 
+    protected: 
 
     float *frequency, *amp; 
+    int sampleRate, bitDepth, maxAmp; 
 
+    public: 
+
+    float midiToFreq(int _note); //midi note to frequency
+    int numVoices = 1; 
+    
     Voice(int _sampleRate, int _bitDepth, int _numVoices);
-
-    float genValue(); //generate output
-    void deallocate(); //delete all memory allocate during startup 
+    
+    virtual float genValue() const = 0; //generate output, default is no output
+    virtual ~Voice() = default; 
+    virtual void updateParams() {}
+    void deallocate(); //delete all memory allocated during startup 
     bool setFrequency(int _voice, float _frequency); //set frequency with freq input
     bool setFrequencyMidi(int _voice, int _note); //set frequency with midi note input 
+}; 
+
+struct AudioData {
+    std::unique_ptr<Voice> oscillator; 
 }; 
 
 class Audio{
@@ -30,15 +34,14 @@ class Audio{
     PaError paErr; 
     PaStream* paStream;
 
-    bool init(int sampleRate, int framesPerBuffer, Voice voices); //initialize audio device
+    bool init(int sampleRate, int framesPerBuffer); //initialize audio device
     bool startAudio(); //start outputting sound
     bool deinit(); //deinitialize audio device
 
     private: 
-    int numberOfActiveVoices; 
 
     bool checkPaError(PaError err); //check for port audio errors
     static int callback(const void* inputBuffer, void* outputBuffer, 
 	    unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo, 
 	    PaStreamCallbackFlags flags, void* userInfo); //port audio callback function
-}; 
+};
