@@ -16,6 +16,8 @@ we'll set some max number of voices. the sound source for these can be done thro
 
 the voices each will have a pitch envelope which will describe how quickly and with what shape the pitch will change, and a normal amplitude envelope to be retriggered at choosing, regular intervals, with the dispatching of new events, or completely deactivated. all voices will be subject to the final amplitdue envelope with which we can create rythmic ideas on our pads (kinda like a string section, less drone-y).  
 
+the current project architechture requires that some class be made and passed on to the audio instance which will treat the class as an oscillator. this class does not need to handle polyphony as that will be handled in the audio instance itself. it'll have access to the sample rate, frequency, and amplitude of the voice. 
+
 ### _motivation and project mindset_
 i want to keep this from being too mouse-based - a big problem with computer music software is its reliance on keeping true to a physical architecture and ending up being too reliant on clicking things. i want to keep these to keystrokes we can develop a muscle memory to and maybe even get used to to the point of engaging creativity and exploration. i want this used in live performances as well as pre-written programs, so i can't make it too reliant on pre-setup and more so make it adaptable and resilient. 
 
@@ -24,5 +26,4 @@ it'll be modifiable and adaptible, but the options to customize it are not going
 ### _dependencies_
 **raylib** will handle the visuals, user input, and all UI. **Raudio** will handle the audio output (and further audio settings). **PortMidi** could be used to handle all midi note input (and maybe output in the future). 
 
-### _as of right now_
-nothing is coded :p 
+
