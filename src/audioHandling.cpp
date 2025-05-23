@@ -1,7 +1,5 @@
 #include "audioHandling.hpp"
 
-AudioData audioData;
-
 float Voice::midiToFreq(int _note){
     return 440.f * exp((log(2) * (_note - 69))/12); 
 }  
@@ -31,26 +29,22 @@ void Voice::deallocate(){
     delete[] amp; 
 }
 
-bool Voice::setFrequency(int _voice, float _frequency){
+void Voice::setFrequency(int _voice, float _frequency){
     if (_voice >= numVoices){
         std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
-        return false; 
     }
     else {
         frequency[_voice] = _frequency; 
     }
-    return true; 
 }
 
-bool Voice::setFrequencyMidi(int _voice, int _note){
+void Voice::setFrequencyMidi(int _voice, int _note){
     if (_voice >= numVoices){
         std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
-        return false; 
     }
     else {
         frequency[_voice] = midiToFreq(_note); 
     }
-    return true; 
 }
 
 /* ******************************************************************************** */
@@ -66,7 +60,7 @@ void SineOscillator::updateParams(){
 	}
 }
 
-float SineOscillator::genValue() const{
+float SineOscillator::genValue(){
 	float out = 0.f; 
 	for (int i = 0; i < numVoices; i++){
 		out += amp[i] * sinf(2 * M_PI * offset[i]); 
@@ -80,15 +74,35 @@ SineOscillator::~SineOscillator(){
 	delete[] incr; 
 }
 
+/* ******************************************************************************** */
 
+template <class Obj, class ValueType>
+void Event::addPossibleEvent(Obj& obj, void (Obj::*setter)(ValueType), ValueType _newVal, 
+    std::string id){
+    
+    possibleEvents.push_back([&obj, setter](ValueType _newVal){(obj.*setter)(_newVal); }); 
+    glossary[id] = possibleEvents.size() - 1; 
+}
 
+void Event::addToQueue(std::string id, int _newVal){
+    queue.push_back(possibleEvents[glossary.at(id)]); 
+    queueData.push_back(_newVal); 
+}
+void Event::triggerEvent(){
+    if (queue.size() ==0) std::cout << "nothing added to queue\n"; 
+    else {
+        queue.back()(queueData.back()); 
+        queue.pop_back(); 
+        queueData.pop_back(); 
+    }
+}
 
 /* ******************************************************************************** */
 
 bool Audio::init(int sampleRate, int framesPerBuffer)
 {
 	paErr = Pa_OpenDefaultStream(&paStream, 0, 1, paFloat32, sampleRate, 
-		framesPerBuffer, callback, &audioData); 
+		framesPerBuffer, callback, &audioCallback); 
 	if (checkPaError(paErr)) return false; 
 
     return true;   
@@ -126,13 +140,12 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
 	PaStreamCallbackFlags flags, void* userInfo)
 {
     float *out = (float*) outputBuffer; 
-	auto* data = static_cast<AudioData*>(userInfo); 
+
+	std::function<float()>* audioGenFunc = (std::function<float()>*) userInfo; 
 	(void) inputBuffer; 
 
-    float bucket = 0; 
-
 	for (int i = 0; i < framesPerBuffer; i++){
-		float outVal = data->oscillator->genValue();
+		float outVal = (*audioGenFunc)(); 
 		*out++ = outVal; 
 	}
 
@@ -140,7 +153,3 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
 }
 
 /* ******************************************************************************** */
-
-void useDefaultOsc(int sampleRate, int framesPerBuffer, int numVoices){
-    audioData.oscillator = std::make_unique<SineOscillator>(sampleRate, framesPerBuffer, numVoices); 
-}

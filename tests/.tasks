@@ -1,0 +1,15 @@
+[file-build]
+command=g++ -std=c++20 voiceClass.cpp -o voiceClass
+cwd=$(VIM_FILEDIR)
+output=terminal
+
+
+[file-run]
+command=./voiceClass
+cwd=$(VIM_FILEDIR)
+output=terminal 
+
+[file-buildnrun]
+command=g++ -std=c++20 voiceClass.cpp -o voiceClass; ./voiceClass
+cwd=$(VIM_FILEDIR)
+output=terminal

@@ -1,6 +1,10 @@
 #include <iostream>
 #include <math.h>
 #include <memory>
+#include <functional>
+#include <unordered_map>
+#include <vector> 
+#include <string> 
 #include "portaudio.h"
 
 
@@ -17,12 +21,12 @@ class Voice{
     
     Voice(int _sampleRate, int _bitDepth, int _numVoices);
     
-    virtual float genValue() const = 0; //generate output, default is no output
+    virtual float genValue() { return 0; } //generate output, default is no output
     virtual ~Voice() = default; 
     virtual void updateParams() {}
     void deallocate(); //delete all memory allocated during startup 
-    bool setFrequency(int _voice, float _frequency); //set frequency with freq input
-    bool setFrequencyMidi(int _voice, int _note); //set frequency with midi note input 
+    void setFrequency(int _voice, float _frequency); //set frequency with freq input
+    void setFrequencyMidi(int _voice, int _note); //set frequency with midi note input 
 }; 
 
 class SineOscillator : public Voice{
@@ -33,23 +37,40 @@ class SineOscillator : public Voice{
 		init(); 
 	}
 	void init(); 
-	float genValue() const override; 
+	float genValue() override; 
 	~SineOscillator() override; 
 	void updateParams() override; 
 }; 
 
-struct AudioData {
-    std::unique_ptr<Voice> oscillator; 
+class Event {
+    public: 
+    std::unordered_map<std::string, int> glossary; 
+    std::vector<std::function<void(int _newVal)> > possibleEvents; 
+    
+    std::vector<std::function<void(float _newVal)> > queue; 
+    std::vector<float> queueData; 
+
+
+    template<class Obj, class ValueType>
+    void addPossibleEvent(Obj& obj, void (Obj::*setter)(ValueType), ValueType _newVal, std::string id); 
+    void addToQueue(std::string id, int _newVal); 
+    void triggerEvent(); 
 }; 
 
 class Audio{
     public: 
     PaError paErr; 
     PaStream* paStream;
+    std::function<float()> audioCallback = []() -> float{ return 0.f; }; 
 
     bool init(int sampleRate, int framesPerBuffer); //initialize audio device
     bool startAudio(); //start outputting sound
     bool deinit(); //deinitialize audio device
+
+    template<class Obj> 
+    void setCallback(Obj& obj, float (Obj::*setter)()){
+        audioCallback = [&obj, setter]() -> float{ return (obj.*setter)(); }; 
+    }; 
 
     private: 
 
@@ -59,4 +80,3 @@ class Audio{
 	    PaStreamCallbackFlags flags, void* userInfo); //port audio callback function
 };
 
-void useDefaultOsc(int sampleRate, int framesPerBuffer, int numVoices); 
