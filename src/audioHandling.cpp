@@ -29,7 +29,7 @@ void Voice::deallocate(){
     delete[] amp; 
 }
 
-void Voice::setFrequency(int _voice, float _frequency){
+void Voice::setFrequency(float _frequency, int _voice){
     if (_voice >= numVoices){
         std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
     }
@@ -38,7 +38,7 @@ void Voice::setFrequency(int _voice, float _frequency){
     }
 }
 
-void Voice::setFrequencyMidi(int _voice, int _note){
+void Voice::setFrequencyMidi(float _note, int _voice){
     if (_voice >= numVoices){
         std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
     }
@@ -75,23 +75,15 @@ SineOscillator::~SineOscillator(){
 }
 
 /* ******************************************************************************** */
-
-template <class Obj, class ValueType>
-void Event::addPossibleEvent(Obj& obj, void (Obj::*setter)(ValueType), ValueType _newVal, 
-    std::string id){
-    
-    possibleEvents.push_back([&obj, setter](ValueType _newVal){(obj.*setter)(_newVal); }); 
-    glossary[id] = possibleEvents.size() - 1; 
-}
-
-void Event::addToQueue(std::string id, int _newVal){
+void Event::addToQueue(std::string id, float _newVal, int _voice){
     queue.push_back(possibleEvents[glossary.at(id)]); 
-    queueData.push_back(_newVal); 
+    queueData.push_back(std::make_pair(_newVal, _voice)); 
 }
+
 void Event::triggerEvent(){
     if (queue.size() ==0) std::cout << "nothing added to queue\n"; 
     else {
-        queue.back()(queueData.back()); 
+        queue.back()(queueData.back().first, queueData.back().second); 
         queue.pop_back(); 
         queueData.pop_back(); 
     }

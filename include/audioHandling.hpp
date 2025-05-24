@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector> 
 #include <string> 
+#include <utility>
+
 #include "portaudio.h"
 
 
@@ -25,8 +27,8 @@ class Voice{
     virtual ~Voice() = default; 
     virtual void updateParams() {}
     void deallocate(); //delete all memory allocated during startup 
-    void setFrequency(int _voice, float _frequency); //set frequency with freq input
-    void setFrequencyMidi(int _voice, int _note); //set frequency with midi note input 
+    void setFrequency(float _frequency, int _voice); //set frequency with freq input
+    void setFrequencyMidi(float _note, int _voice); //set frequency with midi note input 
 }; 
 
 class SineOscillator : public Voice{
@@ -40,20 +42,28 @@ class SineOscillator : public Voice{
 	float genValue() override; 
 	~SineOscillator() override; 
 	void updateParams() override; 
+    void freqChange(float _note, int _voice) { 
+        setFrequencyMidi(_note, _voice); 
+        updateParams(); 
+    }
 }; 
 
 class Event {
     public: 
     std::unordered_map<std::string, int> glossary; 
-    std::vector<std::function<void(int _newVal)> > possibleEvents; 
+    std::vector<std::function<void(float _newVal, int _voice)> > possibleEvents; 
     
-    std::vector<std::function<void(float _newVal)> > queue; 
-    std::vector<float> queueData; 
+    std::vector< std::function<void(float _newVal, int _voice)> > queue; 
+    std::vector< std::pair<float, int> > queueData; 
 
 
-    template<class Obj, class ValueType>
-    void addPossibleEvent(Obj& obj, void (Obj::*setter)(ValueType), ValueType _newVal, std::string id); 
-    void addToQueue(std::string id, int _newVal); 
+    template<class Obj>
+    void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), std::string id){
+        possibleEvents.push_back([&obj, setter](float _newVal, int _voice){(obj.*setter)(_newVal, _voice); }); 
+        glossary[id] = possibleEvents.size() - 1; 
+    } 
+
+    void addToQueue(std::string id, float _newVal, int _voice); 
     void triggerEvent(); 
 }; 
 
