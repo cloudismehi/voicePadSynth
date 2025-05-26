@@ -75,19 +75,61 @@ SineOscillator::~SineOscillator(){
 }
 
 /* ******************************************************************************** */
-void Event::addToQueue(std::string id, float _newVal, int _voice){
-    queue.push_back(possibleEvents[glossary.at(id)]); 
-    queueData.push_back(std::make_pair(_newVal, _voice)); 
+int Event::newEvent(){
+    events.resize(events.size() + 1); 
+    return events.size() - 1; 
 }
 
-void Event::triggerEvent(){
-    if (queue.size() ==0) std::cout << "nothing added to queue\n"; 
-    else {
-        queue.back()(queueData.back().first, queueData.back().second); 
-        queue.pop_back(); 
-        queueData.pop_back(); 
-    }
+void Event::listEvents(){
+    int eventIndex = 0;
+        for (auto event : events){
+          std::cout << "event " << eventIndex << ":\n";
+          for (int i = 0; i < event.queue.size(); i++){
+            std::cout << " " << event.commandNames[i] << " to " << event.queueData[i].first << " on voice " << event.queueData[i].second << '\n';
+          }
+          eventIndex++;
+        }
+    std::cout << '\n';
 }
+
+void Event::addToEvent(int _eventIndex, std::string _id, float _newVal, int _voice){
+    events[_eventIndex].queue.push_back(possibleEvents[glossary.at(_id)]); 
+    events[_eventIndex].queueData.push_back(std::make_pair(_newVal, _voice));
+    events[_eventIndex].commandNames.push_back(_id); 
+}
+
+void Event::addToEvent(std::string _id, float _newVal, int _voice){
+    if (openedEvent == -1) {
+        std::cout << "no event opened\n"; 
+        return; 
+    }
+    events[openedEvent].queue.push_back(possibleEvents[glossary.at(_id)]); 
+    events[openedEvent].queueData.push_back(std::make_pair(_newVal, _voice));
+    events[openedEvent].commandNames.push_back(_id); 
+}
+
+void Event::deployEvent(int _eventIndex){
+    int commandNumber = events[_eventIndex].queue.size(); 
+    for (int i = 0; i < commandNumber; i++){
+        events[_eventIndex].queue.back()(events[_eventIndex].queueData.back().first, events[_eventIndex].queueData.back().second);
+        events[_eventIndex].queue.pop_back(); 
+        events[_eventIndex].queueData.pop_back(); 
+        events[_eventIndex].commandNames.pop_back();
+    }
+    events.erase(events.begin() + _eventIndex); 
+}
+
+void Event::deployEvent(){
+    int commandNumber = events.front().queue.size(); 
+    for (int i = 0; i < commandNumber; i++){
+        events.front().queue.back()(events.front().queueData.front().first, events.front().queueData.front().second); 
+        events.front().queue.erase(events.front().queue.begin()); 
+        events.front().queueData.erase(events.front().queueData.begin()); 
+        events.front().commandNames.erase(events.front().commandNames.begin()); 
+    }
+    events.erase(events.begin()); 
+}
+
 
 /* ******************************************************************************** */
 

@@ -53,18 +53,30 @@ class Event {
     std::unordered_map<std::string, int> glossary; 
     std::vector<std::function<void(float _newVal, int _voice)> > possibleEvents; 
     
-    std::vector< std::function<void(float _newVal, int _voice)> > queue; 
-    std::vector< std::pair<float, int> > queueData; 
+    struct Commands{
+        std::vector< std::function<void(float _newVal, int _voice)> > queue; 
+        std::vector< std::pair<float, int> > queueData; 
+        std::vector< std::string > commandNames; 
+    }; 
 
+    std::vector<Commands> events; 
+    int openedEvent = -1; 
+
+    int newEvent(); 
+    void listEvents(); 
+    void openEvent(int _eventIndex){ openedEvent = _eventIndex; }
+    void closeEvent(){ openedEvent = -1; }
+
+    void addToEvent(int _eventIndex, std::string _id, float _newVal, int _voice);
+    void addToEvent(std::string _id, float _newVal, int _voice);
+    void deployEvent(int _eventIndex);
+    void deployEvent();
 
     template<class Obj>
     void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), std::string id){
         possibleEvents.push_back([&obj, setter](float _newVal, int _voice){(obj.*setter)(_newVal, _voice); }); 
         glossary[id] = possibleEvents.size() - 1; 
     } 
-
-    void addToQueue(std::string id, float _newVal, int _voice); 
-    void triggerEvent(); 
 }; 
 
 class Audio{
