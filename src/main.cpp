@@ -8,38 +8,48 @@
 #include "projectSettings.hpp"
 
 int numVoices = 2; 
-
-//TODO: review Voice / SineOcillator architecture to make sure it works with current project layout.
-
+float foo(){ return 1.f; }
 int main(){
-	Audio audioInstance; 
-	Event events; 
+	Pa_Initialize(); 	
+	Stream audioStream; 
+
+	Audio audioInstance;
+	if (!audioInstance.init(sampleRate, framesPerBuffer, audioStream)){
+		std::cout << "error initializing audio instance\n"; 
+	} 
+	
+	Event events(audioStream); 
+	
 	SineOscillator sineOsc(sampleRate, bitDepth, numVoices); 
+	
+	if (audioStream.initCheck != 2){
+		std::cout << "error! audio stream init check failed\n";
+		return 1; 
+	}
+	
+	sineOsc.setFreqMidi(60.f, 0); 
+	sineOsc.setFreqMidi(64.f, 1); 
+	
+	events.addPossibleEvent(sineOsc, &SineOscillator::setFreq, "freq"); 
+	events.addPossibleEvent(sineOsc, &SineOscillator::setFreqMidi, "freqMidi"); 
+	
+	events.openEvent(events.newEvent()); 
+	events.addToEvent("freqMidi", 62.f, 0); 
+	events.closeEvent(); 
 
-	sineOsc.setFrequencyMidi(60.f, 0); 
-	sineOsc.setFrequencyMidi(64.f, 1); 
-	sineOsc.updateParams(); 
-
-	events.addPossibleEvent(sineOsc, &SineOscillator::freqChange, "freq"); 
-	events.newEvent(); 
-	events.openEvent(0); 
-	events.addToEvent("freq", 62.f, 1); 
-	events.addToEvent("freq", 59.f, 0); 
+	events.openEvent(events.newEvent()); 
+	events.addToEvent("freqMidi", 65.f, 1); 
 	events.closeEvent(); 
 	
+	audioStream.addFunction(sineOsc, &SineOscillator::genValue); 
 
-	audioInstance.setCallback(sineOsc, &SineOscillator::genValue);
-	
-	//program loop 
-	Pa_Initialize(); 	
-
-	audioInstance.init(sampleRate, framesPerBuffer); 
-	audioInstance.startAudio(); 
+	if(!audioInstance.startAudio()){
+		std::cout << "error with starting audio!\n"; 
+	}
 	
 	Pa_Sleep(1000); 
-	events.deployEvent(); 
-	Pa_Sleep(1000); 
 	
+	Pa_Sleep(1000); 
 
 	audioInstance.deinit(); 
 

@@ -1,10 +1,30 @@
 #include "audioHandling.hpp"
 
-float Voice::midiToFreq(int _note){
-    return 440.f * exp((log(2) * (_note - 69))/12); 
-}  
+void Envelope::init(float _initValue, float _endValue, float _time){
+    offset = _initValue;
+    slope = (_endValue - _initValue) / (_time); 
+    
+    initValue = _initValue; 
+    endValue = _endValue; 
+    set = true; 
+}
 
-Voice::Voice(int _sampleRate, int _bitDepth, int _numVoices){
+float Envelope::nextValue(int _index){
+    float out = (float)(slope * _index) + (float)offset; 
+    _index++; 
+
+    if ((slope < 0) && (out < endValue)) envDone = true; 
+    if ((slope > 0) && (out > endValue)) envDone = true; 
+
+    return out; 
+}
+
+/* ******************************************************************************** */
+
+SineOscillator::SineOscillator(int _sampleRate, int _bitDepth, int _numVoices){
+    offset = new float[numVoices]; 
+	incr = new float[numVoices]; 
+
     sampleRate = _sampleRate; 
     bitDepth = _bitDepth; 
     numVoices = _numVoices; 
@@ -24,37 +44,7 @@ Voice::Voice(int _sampleRate, int _bitDepth, int _numVoices){
     }
 }
 
-void Voice::deallocate(){
-    delete[] frequency; 
-    delete[] amp; 
-}
-
-void Voice::setFrequency(float _frequency, int _voice){
-    if (_voice >= numVoices){
-        std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
-    }
-    else {
-        frequency[_voice] = _frequency; 
-    }
-}
-
-void Voice::setFrequencyMidi(float _note, int _voice){
-    if (_voice >= numVoices){
-        std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
-    }
-    else {
-        frequency[_voice] = midiToFreq(_note); 
-    }
-}
-
-/* ******************************************************************************** */
-
-void SineOscillator::init(){
-	offset = new float[numVoices]; 
-	incr = new float[numVoices]; 
-}
-
-void SineOscillator::updateParams(){
+void SineOscillator::updateOffsets(){
 	for (int i = 0; i < numVoices; i++){
 		incr[i] = frequency[i]/sampleRate; 
 	}
@@ -69,12 +59,40 @@ float SineOscillator::genValue(){
 	return out; 
 }
 
+void SineOscillator::setFreq(float _freq, int _voice){
+    if (_voice >= numVoices){
+        std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
+    }
+    else {
+        frequency[_voice] = _freq; 
+    }
+    updateOffsets(); 
+}
+
+void SineOscillator::setFreqMidi(float _note, int _voice){
+    if (_voice >= numVoices){
+        std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
+    }
+    else {
+        frequency[_voice] = midiToFreq(_note); 
+    }
+    updateOffsets(); 
+}
+
+
 SineOscillator::~SineOscillator(){
 	delete[] offset; 
 	delete[] incr; 
+    delete[] frequency; 
+    delete[] amp; 
 }
 
 /* ******************************************************************************** */
+Event::Event(Stream &_stream){
+    stream = &_stream; 
+    (*stream).initCheck += 1; 
+}
+
 int Event::newEvent(){
     events.resize(events.size() + 1); 
     return events.size() - 1; 
@@ -85,7 +103,7 @@ void Event::listEvents(){
         for (auto event : events){
           std::cout << "event " << eventIndex << ":\n";
           for (int i = 0; i < event.queue.size(); i++){
-            std::cout << " " << event.commandNames[i] << " to " << event.queueData[i].first << " on voice " << event.queueData[i].second << '\n';
+            std::cout << " " << event.commandNames[i] << " to " << std::get<0>(event.queueData[i]) << " on voice " << std::get<1>(event.queueData[i]) << '\n';
           }
           eventIndex++;
         }
@@ -94,7 +112,7 @@ void Event::listEvents(){
 
 void Event::addToEvent(int _eventIndex, std::string _id, float _newVal, int _voice){
     events[_eventIndex].queue.push_back(possibleEvents[glossary.at(_id)]); 
-    events[_eventIndex].queueData.push_back(std::make_pair(_newVal, _voice));
+    events[_eventIndex].queueData.push_back(std::make_tuple(_newVal, _voice, 0));
     events[_eventIndex].commandNames.push_back(_id); 
 }
 
@@ -104,14 +122,17 @@ void Event::addToEvent(std::string _id, float _newVal, int _voice){
         return; 
     }
     events[openedEvent].queue.push_back(possibleEvents[glossary.at(_id)]); 
-    events[openedEvent].queueData.push_back(std::make_pair(_newVal, _voice));
+    events[openedEvent].queueData.push_back(std::make_tuple(_newVal, _voice, 0));
     events[openedEvent].commandNames.push_back(_id); 
 }
 
 void Event::deployEvent(int _eventIndex){
     int commandNumber = events[_eventIndex].queue.size(); 
     for (int i = 0; i < commandNumber; i++){
-        events[_eventIndex].queue.back()(events[_eventIndex].queueData.back().first, events[_eventIndex].queueData.back().second);
+        // events[_eventIndex].queue.back()(events[_eventIndex].queueData.back().first, events[_eventIndex].queueData.back().second);
+        (*stream).modifierFunctions.push_back(events[_eventIndex].queue.back()); 
+        (*stream).modifierFunctionsValues.push_back(events[_eventIndex].queueData.back()); 
+
         events[_eventIndex].queue.pop_back(); 
         events[_eventIndex].queueData.pop_back(); 
         events[_eventIndex].commandNames.pop_back();
@@ -122,7 +143,10 @@ void Event::deployEvent(int _eventIndex){
 void Event::deployEvent(){
     int commandNumber = events.front().queue.size(); 
     for (int i = 0; i < commandNumber; i++){
-        events.front().queue.back()(events.front().queueData.front().first, events.front().queueData.front().second); 
+        // events.front().queue.back()(events.front().queueData.front().first, events.front().queueData.front().second); 
+        (*stream).modifierFunctions.push_back(events.front().queue.back()); 
+        (*stream).modifierFunctionsValues.push_back(events.front().queueData.back()); 
+
         events.front().queue.erase(events.front().queue.begin()); 
         events.front().queueData.erase(events.front().queueData.begin()); 
         events.front().commandNames.erase(events.front().commandNames.begin()); 
@@ -133,11 +157,14 @@ void Event::deployEvent(){
 
 /* ******************************************************************************** */
 
-bool Audio::init(int sampleRate, int framesPerBuffer)
+bool Audio::init(int sampleRate, int framesPerBuffer, Stream &_stream)
 {
+    Stream* stream = &_stream; 
 	paErr = Pa_OpenDefaultStream(&paStream, 0, 1, paFloat32, sampleRate, 
-		framesPerBuffer, callback, &audioCallback); 
+		framesPerBuffer, callback, &_stream); 
 	if (checkPaError(paErr)) return false; 
+    
+    (*stream).initCheck++;
 
     return true;   
 }
@@ -162,24 +189,45 @@ bool Audio::deinit(){
 
 bool Audio::checkPaError(PaError err){
     if (err != paNoError){
-		printf("caught pa error: %s", Pa_GetErrorText(err));
+		printf("caught pa error: %s\n", Pa_GetErrorText(err));
 		Pa_Terminate();
-		return false;
+		return true;
 	}
-	return true; 
+	return false; 
 }
 
 int Audio::callback(const void* inputBuffer, void* outputBuffer, 
 	unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo, 
 	PaStreamCallbackFlags flags, void* userInfo)
 {
+	(void) inputBuffer; 
     float *out = (float*) outputBuffer; 
 
-	std::function<float()>* audioGenFunc = (std::function<float()>*) userInfo; 
-	(void) inputBuffer; 
-
+    Stream* audioStream = (Stream*) userInfo; 
+    
 	for (int i = 0; i < framesPerBuffer; i++){
-		float outVal = (*audioGenFunc)(); 
+        float outVal = 0; 
+
+        int commandCount = audioStream->modifierFunctions.size(); 
+        std::cout << commandCount; 
+
+        for (int modIndex = 0; modIndex < audioStream->modifierFunctions.size(); modIndex++){
+            if (std::get<2>(audioStream->modifierFunctionsValues[modIndex]) == 0){ //instant functions
+                std::cout << audioStream->modifierFunctions.size() << " instant functions deployed\n"; 
+
+                (*audioStream).modifierFunctions[modIndex](
+                    std::get<0>(audioStream->modifierFunctionsValues[modIndex]), 
+                    std::get<1>(audioStream->modifierFunctionsValues[modIndex])
+                ); 
+                
+                (*audioStream).modifierFunctions.erase((*audioStream).modifierFunctions.begin() + modIndex); 
+            } else{
+                //functions over time
+            }
+        }
+        for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex++){
+            outVal = (*audioStream).audioGenFunctions[audioGenIndex](); 
+        }
 		*out++ = outVal; 
 	}
 
@@ -187,3 +235,7 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
 }
 
 /* ******************************************************************************** */
+
+float midiToFreq(int _note){
+	return 440.f * exp((log(2) * (_note - 69))/12); 
+}
