@@ -20,74 +20,6 @@ float Envelope::nextValue(int _index){
 }
 
 /* ******************************************************************************** */
-
-SineOscillator::SineOscillator(int _sampleRate, int _bitDepth, int _numVoices){
-    offset = new float[numVoices]; 
-	incr = new float[numVoices]; 
-
-    sampleRate = _sampleRate; 
-    bitDepth = _bitDepth; 
-    numVoices = _numVoices; 
-
-    frequency = new float[numVoices]; 
-    amp = new float[numVoices]; 
-
-    for (int i = 0; i < numVoices; i++){
-        frequency[i] = 200.f; 
-        amp[i] = 0.2f; 
-    }
-
-    if (bitDepth == 16){
-        maxAmp = pow(2, bitDepth - 1) - 1; 
-    } else if (bitDepth == 32){
-        maxAmp = 1.f; 
-    }
-}
-
-void SineOscillator::updateOffsets(){
-	for (int i = 0; i < numVoices; i++){
-		incr[i] = frequency[i]/sampleRate; 
-	}
-}
-
-float SineOscillator::genValue(){
-	float out = 0.f; 
-	for (int i = 0; i < numVoices; i++){
-		out += amp[i] * sinf(2 * M_PI * offset[i]); 
-		if ((offset[i] += incr[i]) >= 1.f) offset[i] = 0.f; 
-	}
-	return out; 
-}
-
-void SineOscillator::setFreq(float _freq, int _voice){
-    if (_voice >= numVoices){
-        std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
-    }
-    else {
-        frequency[_voice] = _freq; 
-    }
-    updateOffsets(); 
-}
-
-void SineOscillator::setFreqMidi(float _note, int _voice){
-    if (_voice >= numVoices){
-        std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
-    }
-    else {
-        frequency[_voice] = midiToFreq(_note); 
-    }
-    updateOffsets(); 
-}
-
-
-SineOscillator::~SineOscillator(){
-	delete[] offset; 
-	delete[] incr; 
-    delete[] frequency; 
-    delete[] amp; 
-}
-
-/* ******************************************************************************** */
 Event::Event(Stream &_stream){
     stream = &_stream; 
     (*stream).initCheck += 1; 
@@ -209,7 +141,7 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
         float outVal = 0; 
 
         int commandCount = audioStream->modifierFunctions.size(); 
-        std::cout << commandCount; 
+        // std::cout << commandCount; 
 
         for (int modIndex = 0; modIndex < audioStream->modifierFunctions.size(); modIndex++){
             if (std::get<2>(audioStream->modifierFunctionsValues[modIndex]) == 0){ //instant functions
@@ -226,7 +158,7 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
             }
         }
         for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex++){
-            outVal = (*audioStream).audioGenFunctions[audioGenIndex](); 
+            outVal += (*audioStream).audioGenFunctions[audioGenIndex](); 
         }
 		*out++ = outVal; 
 	}

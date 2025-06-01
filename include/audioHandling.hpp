@@ -49,24 +49,7 @@ class Stream{
         audioGenFunctions.push_back(func); 
     }
 
-}; 
-
-class SineOscillator{
-	public:
-
-	float *offset, *incr, *frequency, *amp; 
-    int sampleRate, bitDepth, maxAmp, numVoices; 
-	
-    SineOscillator(int _sampleRate, int _bitDepth, int _numVoices); 
-
-	float genValue(); 
-	void updateOffsets(); 
-    void setFreq(float _freq, int _voice); 
-    void setFreqMidi(float _note, int _voice);
-
-	~SineOscillator(); 
 };
-
 
 class Event {
     public: 

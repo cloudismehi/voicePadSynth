@@ -5,10 +5,11 @@
 #include <portaudio.h> 
 
 #include "audioHandling.hpp"
+#include "soundSources.hpp"
 #include "projectSettings.hpp"
 
 int numVoices = 2; 
-float foo(){ return 1.f; }
+
 int main(){
 	Pa_Initialize(); 	
 	Stream audioStream; 
@@ -21,6 +22,7 @@ int main(){
 	Event events(audioStream); 
 	
 	SineOscillator sineOsc(sampleRate, bitDepth, numVoices); 
+	SineFold foldOsc(sampleRate, bitDepth, numVoices); 
 	
 	if (audioStream.initCheck != 2){
 		std::cout << "error! audio stream init check failed\n";
@@ -29,6 +31,9 @@ int main(){
 	
 	sineOsc.setFreqMidi(60.f, 0); 
 	sineOsc.setFreqMidi(64.f, 1); 
+	
+	foldOsc.setFreqMidi(67.f, 0); 
+	foldOsc.setFreqMidi(71.f, 1); 
 	
 	events.addPossibleEvent(sineOsc, &SineOscillator::setFreq, "freq"); 
 	events.addPossibleEvent(sineOsc, &SineOscillator::setFreqMidi, "freqMidi"); 
@@ -41,6 +46,7 @@ int main(){
 	events.addToEvent("freqMidi", 65.f, 1); 
 	events.closeEvent(); 
 	
+	audioStream.addFunction(foldOsc, &SineFold::genValue); 
 	audioStream.addFunction(sineOsc, &SineOscillator::genValue); 
 
 	if(!audioInstance.startAudio()){

@@ -6,8 +6,8 @@ portaudio_inc = -I/Users/fernandosanchez/development/third-libs/audio/portaudio/
 portaudio_lib = -L/Users/fernandosanchez/development/third-libs/audio/portaudio/build -lportaudio
 portaudio_dep = -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework CoreServices
 
-voicePadSynth: audioHandling.o voicePadSynth.o
-	@g++ -std=c++20  ${raylib_dep} ${raylib_lib} ${portaudio_dep} ${portaudio_lib} src/obj/audioHandling.o src/obj/voicePadSynth.o -o voicePadSynth
+voicePadSynth: audioHandling.o soundSources.o voicePadSynth.o
+	@g++ -std=c++20  ${raylib_dep} ${raylib_lib} ${portaudio_dep} ${portaudio_lib} src/obj/audioHandling.o src/obj/voicePadSynth.o src/obj/soundSources.o -o voicePadSynth
 	@mv voicePadSynth execs
 	@echo "built project!"
 	
@@ -18,3 +18,7 @@ voicePadSynth.o: src/main.cpp
 audioHandling.o: src/audioHandling.cpp
 	@g++ -std=c++20 src/audioHandling.cpp ${portaudio_inc} -I ./include -c -o audioHandling.o 
 	@mv audioHandling.o src/obj
+
+soundSources.o: src/soundSources.cpp
+	@g++ -std=c++20 src/soundSources.cpp -I ./include -c -o soundSources.o
+	@mv soundSources.o src/obj
