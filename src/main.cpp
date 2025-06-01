@@ -39,11 +39,8 @@ int main(){
 	events.addPossibleEvent(sineOsc, &SineOscillator::setFreqMidi, "freqMidi"); 
 	
 	events.openEvent(events.newEvent()); 
-	events.addToEvent("freqMidi", 62.f, 0); 
-	events.closeEvent(); 
-
-	events.openEvent(events.newEvent()); 
 	events.addToEvent("freqMidi", 65.f, 1); 
+	events.addToEvent("freqMidi", 62.f, 0); 
 	events.closeEvent(); 
 	
 	audioStream.addFunction(foldOsc, &SineFold::genValue); 
@@ -54,8 +51,9 @@ int main(){
 	}
 	
 	Pa_Sleep(1000); 
-	
+	events.deployEvent(); 
 	Pa_Sleep(1000); 
+	
 
 	audioInstance.deinit(); 
 

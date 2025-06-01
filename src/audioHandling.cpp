@@ -61,7 +61,6 @@ void Event::addToEvent(std::string _id, float _newVal, int _voice){
 void Event::deployEvent(int _eventIndex){
     int commandNumber = events[_eventIndex].queue.size(); 
     for (int i = 0; i < commandNumber; i++){
-        // events[_eventIndex].queue.back()(events[_eventIndex].queueData.back().first, events[_eventIndex].queueData.back().second);
         (*stream).modifierFunctions.push_back(events[_eventIndex].queue.back()); 
         (*stream).modifierFunctionsValues.push_back(events[_eventIndex].queueData.back()); 
 
@@ -75,9 +74,9 @@ void Event::deployEvent(int _eventIndex){
 void Event::deployEvent(){
     int commandNumber = events.front().queue.size(); 
     for (int i = 0; i < commandNumber; i++){
-        // events.front().queue.back()(events.front().queueData.front().first, events.front().queueData.front().second); 
-        (*stream).modifierFunctions.push_back(events.front().queue.back()); 
-        (*stream).modifierFunctionsValues.push_back(events.front().queueData.back()); 
+        (*stream).modifierFunctions.push_back(events.front().queue.front()); 
+        (*stream).modifierFunctionsValues.push_back(events.front().queueData.front()); 
+        (*stream).modFunctionNum++; 
 
         events.front().queue.erase(events.front().queue.begin()); 
         events.front().queueData.erase(events.front().queueData.begin()); 
@@ -134,29 +133,25 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
 {
 	(void) inputBuffer; 
     float *out = (float*) outputBuffer; 
-
     Stream* audioStream = (Stream*) userInfo; 
+
+    auto modFuncs = audioStream->modifierFunctions; 
+    auto modFuncVals = audioStream->modifierFunctionsValues; 
+    (*audioStream).modifierFunctions.clear(); 
+    (*audioStream).modifierFunctionsValues.clear(); 
+    (*audioStream).modFunctionNum = 0; 
+
+    for (int i = 0 ; i < modFuncs.size(); ++i){
+        if (std::get<2>(modFuncVals[i]) == 0){
+            modFuncs[i](std::get<0>(modFuncVals[i]), std::get<1>(modFuncVals[i])); 
+        } else {
+            /* handle changes over time */
+        }
+    }
     
 	for (int i = 0; i < framesPerBuffer; i++){
         float outVal = 0; 
-
-        int commandCount = audioStream->modifierFunctions.size(); 
-        // std::cout << commandCount; 
-
-        for (int modIndex = 0; modIndex < audioStream->modifierFunctions.size(); modIndex++){
-            if (std::get<2>(audioStream->modifierFunctionsValues[modIndex]) == 0){ //instant functions
-                std::cout << audioStream->modifierFunctions.size() << " instant functions deployed\n"; 
-
-                (*audioStream).modifierFunctions[modIndex](
-                    std::get<0>(audioStream->modifierFunctionsValues[modIndex]), 
-                    std::get<1>(audioStream->modifierFunctionsValues[modIndex])
-                ); 
-                
-                (*audioStream).modifierFunctions.erase((*audioStream).modifierFunctions.begin() + modIndex); 
-            } else{
-                //functions over time
-            }
-        }
+    
         for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex++){
             outVal += (*audioStream).audioGenFunctions[audioGenIndex](); 
         }

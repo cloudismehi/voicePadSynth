@@ -30,6 +30,7 @@ class Stream{
     std::vector< std::function<float()> > audioGenFunctions; 
     std::vector< std::function<void(float, int)> > modifierFunctions; 
     std::vector< std::tuple<float, int, float> > modifierFunctionsValues; 
+    int modFunctionNum = 0; 
 
     Envelope envelope; 
     int initCheck = 0; //after events and audio instance initialize, this should be zero 
