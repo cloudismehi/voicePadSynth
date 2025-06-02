@@ -22,27 +22,23 @@ class Envelope{
   
   void resetEnvelope(){ index = 0; }
   
-  float nextValue(int _index);
+  float nextValue();
 }; 
 
 class Stream{
     public:
     std::vector< std::function<float()> > audioGenFunctions; 
-    std::vector< std::function<void(float, int)> > modifierFunctions; 
-    std::vector< std::tuple<float, int, float> > modifierFunctionsValues; 
-    int modFunctionNum = 0; 
 
-    Envelope envelope; 
+    struct ModifierFunc{
+        std::function< void(float, int) > func; 
+        Envelope envelope; 
+        float newVal, curVal, changeDur; 
+        int voice; 
+    }; 
+    std::vector<ModifierFunc> modFuncs;
+
+
     int initCheck = 0; //after events and audio instance initialize, this should be zero 
-
-    template<class Obj>
-    void addFunction(Obj &obj, void(Obj::*function)(float, int)){
-
-        std::function <void(float, int)> func = [&obj, function](float _newVal, int _newVoice){
-            (obj.*function)(_newVal, _newVoice); 
-        };
-        modifierFunctions.push_back(func); 
-    }
 
     template<class Obj>
     void addFunction(Obj &obj, float(Obj::*function)()){
@@ -61,8 +57,9 @@ class Event {
     
     struct Commands{
         std::vector< std::function<void(float _newVal, int _voice)> > queue; 
-        std::vector< std::tuple<float, int, float> > queueData; 
+        std::vector< std::tuple<float, int, float> > queueData; // newVal, voice, time
         std::vector< std::string > commandNames; 
+        std::vector< float > curVal; 
     }; 
 
     std::vector<Commands> events; 
@@ -74,8 +71,9 @@ class Event {
     void openEvent(int _eventIndex){ openedEvent = _eventIndex; }
     void closeEvent(){ openedEvent = -1; }
 
-    void addToEvent(int _eventIndex, std::string _id, float _newVal, int _voice);
-    void addToEvent(std::string _id, float _newVal, int _voice);
+    void addToEvent(int _eventIndex, std::string _id, float _curVal, float _newVal, float _time, int _voice);
+    void addToEvent(std::string _id, float _curVal, float _newVal, float _time, int _voice); 
+    
     void deployEvent(int _eventIndex);
     void deployEvent();
 
@@ -86,25 +84,14 @@ class Event {
     } 
 };
 
-class UserInfo{
-public: 
-    std::function<float()> callback = []() -> float {return 0.f; }; 
-}; 
-
 class Audio{
     public: 
     PaError paErr; 
     PaStream* paStream;
-    UserInfo userInfo;  
 
     bool init(int sampleRate, int framesPerBuffer, Stream &_stream); //initialize audio device
     bool startAudio(); //start outputting sound
     bool deinit(); //deinitialize audio device
-
-    template<class Obj> 
-    void setCallback(Obj& obj, float (Obj::*setter)()){
-        userInfo.callback = [&obj, setter]() -> float{ return (obj.*setter)(); }; 
-    }; 
 
     private: 
 

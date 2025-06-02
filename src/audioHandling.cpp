@@ -2,16 +2,17 @@
 
 void Envelope::init(float _initValue, float _endValue, float _time){
     offset = _initValue;
-    slope = (_endValue - _initValue) / (_time); 
-    
+    slope = (_endValue - _initValue) / (_time * sampleRate); 
+
     initValue = _initValue; 
     endValue = _endValue; 
     set = true; 
 }
 
-float Envelope::nextValue(int _index){
-    float out = (float)(slope * _index) + (float)offset; 
-    _index++; 
+float Envelope::nextValue(){
+    float out = (float)(slope * index) + (float)offset; 
+    
+    // std::cout << out << ' '; 
 
     if ((slope < 0) && (out < endValue)) envDone = true; 
     if ((slope > 0) && (out > endValue)) envDone = true; 
@@ -42,31 +43,42 @@ void Event::listEvents(){
     std::cout << '\n';
 }
 
-void Event::addToEvent(int _eventIndex, std::string _id, float _newVal, int _voice){
+void Event::addToEvent(int _eventIndex, std::string _id, float _curVal, float _newVal, float _time, int _voice){
     events[_eventIndex].queue.push_back(possibleEvents[glossary.at(_id)]); 
-    events[_eventIndex].queueData.push_back(std::make_tuple(_newVal, _voice, 0));
+    events[_eventIndex].queueData.push_back(std::make_tuple(_newVal, _voice, _time));
     events[_eventIndex].commandNames.push_back(_id); 
+    events[_eventIndex].curVal.push_back(_curVal); 
 }
 
-void Event::addToEvent(std::string _id, float _newVal, int _voice){
+void Event::addToEvent(std::string _id, float _curVal, float _newVal, float _time, int _voice){
     if (openedEvent == -1) {
         std::cout << "no event opened\n"; 
         return; 
     }
     events[openedEvent].queue.push_back(possibleEvents[glossary.at(_id)]); 
-    events[openedEvent].queueData.push_back(std::make_tuple(_newVal, _voice, 0));
+    events[openedEvent].queueData.push_back(std::make_tuple(_newVal, _voice, _time));
     events[openedEvent].commandNames.push_back(_id); 
+    events[openedEvent].curVal.push_back(_curVal); 
 }
 
 void Event::deployEvent(int _eventIndex){
     int commandNumber = events[_eventIndex].queue.size(); 
     for (int i = 0; i < commandNumber; i++){
-        (*stream).modifierFunctions.push_back(events[_eventIndex].queue.back()); 
-        (*stream).modifierFunctionsValues.push_back(events[_eventIndex].queueData.back()); 
+
+        Stream::ModifierFunc func; 
+        func.func = events[_eventIndex].queue.back(); 
+        func.newVal = std::get<0>(events[_eventIndex].queueData.back()); 
+        func.voice = std::get<1>(events[_eventIndex].queueData.back()); 
+        func.changeDur = std::get<2>(events[_eventIndex].queueData.back()); 
+        func.curVal = events[_eventIndex].curVal.back(); 
+        
+        (*stream).modFuncs.push_back(func); 
+        
 
         events[_eventIndex].queue.pop_back(); 
         events[_eventIndex].queueData.pop_back(); 
         events[_eventIndex].commandNames.pop_back();
+        events[_eventIndex].curVal.pop_back(); 
     }
     events.erase(events.begin() + _eventIndex); 
 }
@@ -74,16 +86,23 @@ void Event::deployEvent(int _eventIndex){
 void Event::deployEvent(){
     int commandNumber = events.front().queue.size(); 
     for (int i = 0; i < commandNumber; i++){
-        (*stream).modifierFunctions.push_back(events.front().queue.front()); 
-        (*stream).modifierFunctionsValues.push_back(events.front().queueData.front()); 
-        (*stream).modFunctionNum++; 
+        Stream::ModifierFunc func; 
+        func.func = events.front().queue.front(); 
+        func.newVal = std::get<0>(events.front().queueData.front()); 
+        func.voice = std::get<1>(events.front().queueData.front()); 
+        func.changeDur = std::get<2>(events.front().queueData.front()); 
+        func.curVal = events.front().curVal.front(); 
+        
+        (*stream).modFuncs.push_back(func); 
 
+        events.front().curVal.erase(events.front().curVal.begin()); 
         events.front().queue.erase(events.front().queue.begin()); 
         events.front().queueData.erase(events.front().queueData.begin()); 
         events.front().commandNames.erase(events.front().commandNames.begin()); 
     }
     events.erase(events.begin()); 
 }
+
 
 
 /* ******************************************************************************** */
@@ -135,23 +154,39 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
     float *out = (float*) outputBuffer; 
     Stream* audioStream = (Stream*) userInfo; 
 
-    auto modFuncs = audioStream->modifierFunctions; 
-    auto modFuncVals = audioStream->modifierFunctionsValues; 
-    (*audioStream).modifierFunctions.clear(); 
-    (*audioStream).modifierFunctionsValues.clear(); 
-    (*audioStream).modFunctionNum = 0; 
+    auto modifierFunc = audioStream->modFuncs; 
 
-    for (int i = 0 ; i < modFuncs.size(); ++i){
-        if (std::get<2>(modFuncVals[i]) == 0){
-            modFuncs[i](std::get<0>(modFuncVals[i]), std::get<1>(modFuncVals[i])); 
-        } else {
-            /* handle changes over time */
-        }
+    for (int i = 0; i < modifierFunc.size(); ++i){
+        if (modifierFunc[i].changeDur == 0){
+            modifierFunc[i].func(modifierFunc[i].newVal, modifierFunc[i].voice); 
+            (*audioStream).modFuncs.erase((*audioStream).modFuncs.begin() + i); 
+            modifierFunc = audioStream->modFuncs; 
+        } 
+        
     }
     
 	for (int i = 0; i < framesPerBuffer; i++){
         float outVal = 0; 
-    
+        
+        for (int p = 0; p < modifierFunc.size(); ++p){
+            if (modifierFunc[p].changeDur != 0){
+                if (!modifierFunc[p].envelope.set){
+                    (*audioStream).modFuncs[p].envelope.init(modifierFunc[p].curVal, 
+                        modifierFunc[p].newVal, modifierFunc[p].changeDur); 
+                    modifierFunc[p] = audioStream->modFuncs[p]; 
+                }
+                
+                modifierFunc[p].func(modifierFunc[p].envelope.nextValue(), modifierFunc[p].voice);
+                (*audioStream).modFuncs[p].envelope.index++; 
+                if (modifierFunc[p].envelope.envDone){
+                    // std::cout << "envelope done!\n"; 
+                    modifierFunc[p].func(modifierFunc[p].newVal, modifierFunc[p].voice); 
+                    (*audioStream).modFuncs.erase((*audioStream).modFuncs.begin() + p);
+                    modifierFunc = audioStream->modFuncs; 
+                }
+            }
+        }
+
         for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex++){
             outVal += (*audioStream).audioGenFunctions[audioGenIndex](); 
         }
