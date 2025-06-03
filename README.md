@@ -1,6 +1,5 @@
 # Voice Pad Synth
 
-This project is a pad synth with a lot of inspiration taken from string orchestras and the technique of orchestration used in How To Dissapear Completely by Radiohead. 
 
 ## Basic architechture
 
