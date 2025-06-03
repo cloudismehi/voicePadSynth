@@ -6,7 +6,8 @@ class SineOscillator{
 
 	float *offset, *incr, *frequency, *amp; 
     int sampleRate, bitDepth, maxAmp, numVoices; 
-	
+	float totalAmp = 1.f; 
+
     SineOscillator(int _sampleRate, int _bitDepth, int _numVoices); 
 
 	float genValue(); 
@@ -14,6 +15,7 @@ class SineOscillator{
 
     void setFreq(float _freq, int _voice); 
     void setFreqMidi(float _note, int _voice);
+    void setAmp(float _amp, int _voice); 
 
 	~SineOscillator(); 
 

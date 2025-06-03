@@ -33,26 +33,35 @@ int main(){
 	sineOsc.setFreqMidi(60.f, 0); 
 	sineOsc.setFreqMidi(64.f, 1); 
 	sineOsc.setFreqMidi(67.f, 2); 
+	sineOsc.totalAmp = 0.f; 
 	
 	events.addPossibleEvent(sineOsc, &SineOscillator::setFreq, "freq"); 
-	events.addPossibleEvent(sineOsc, &SineOscillator::setFreqMidi, "freqMidi"); 
+	events.addPossibleEvent(sineOsc, &SineOscillator::setFreqMidi, "freqMidi");
+	events.addPossibleEvent(sineOsc, &SineOscillator::setAmp, "amp"); 
 	
-	events.openEvent(events.newEvent()); 
+	//fade in
+	events.openEvent(events.newEvent());
+	events.addToEvent("amp", 0.f, 1.f, 2.f, -1); 
+	events.closeEvent(); 
 
+	events.openEvent(events.newEvent()); 
 	events.addToEvent("freq", midiToFreq(60.f), midiToFreq(62.f), 0, 0); 
 	events.addToEvent("freq", midiToFreq(64.f), midiToFreq(65.f), 0, 1); 
-	events.addToEvent("freq", midiToFreq(67.f), midiToFreq(69.f), 0, 2); 
-
+	events.addToEvent("freq", midiToFreq(67.f), midiToFreq(69.f), 0.5, 2); 
+	events.addToEvent("amp", 1.f, 0.5, 0.5, 2); //voice goes down in volume
 	events.closeEvent(); 
 	
 	events.openEvent(events.newEvent()); 
-
 	events.addToEvent("freq", midiToFreq(62.f), midiToFreq(64.f), 0.5, 0); 
 	events.addToEvent("freq", midiToFreq(65.f), midiToFreq(67.f), 0.5, 1); 
 	events.addToEvent("freq", midiToFreq(69.f), midiToFreq(71.f), 0.5, 2); 
-
 	events.closeEvent(); 
 	
+	//fade out
+	events.openEvent(events.newEvent()); 
+	events.addToEvent("amp", 1.f, 0.f, 2.f, -1); 
+	events.closeEvent(); 
+
 	audioStream.addFunction(sineOsc, &SineOscillator::genValue); 
 
 	if(!audioInstance.startAudio()){
@@ -60,11 +69,17 @@ int main(){
 	}
 	
 	auto startTime = std::chrono::high_resolution_clock::now(); 
-	Pa_Sleep(1000); 
+	events.deployEvent(); 
+	Pa_Sleep(2500); 
+
 	events.deployEvent(); 
 	Pa_Sleep(2000); 
+
 	events.deployEvent(); 
 	Pa_Sleep(2000); 
+
+	events.deployEvent(); 
+	Pa_Sleep(2500); 
 	auto endTime = std::chrono::high_resolution_clock::now(); 
 
 	audioInstance.deinit(); 

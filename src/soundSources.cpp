@@ -13,7 +13,7 @@ SineOscillator::SineOscillator(int _sampleRate, int _bitDepth, int _numVoices){
 
     for (int i = 0; i < numVoices; i++){
         frequency[i] = 200.f; 
-        amp[i] = 0.2f; 
+        amp[i] = 1.f; 
     }
 
     if (bitDepth == 16){
@@ -35,7 +35,7 @@ float SineOscillator::genValue(){
 		out += amp[i] * sinf(2 * M_PI * offset[i]); 
 		if ((offset[i] += incr[i]) >= 1.f) offset[i] = 0.f; 
 	}
-	return out; 
+	return (totalAmp * out); 
 }
 
 void SineOscillator::setFreq(float _freq, int _voice){
@@ -56,6 +56,17 @@ void SineOscillator::setFreqMidi(float _note, int _voice){
         frequency[_voice] = midiToFreq(_note); 
     }
     updateOffsets(); 
+}
+
+void SineOscillator::setAmp(float _amp, int _voice){
+    if (_voice == -1) totalAmp = _amp; 
+    else {
+        if (_voice >= numVoices){
+            std::cout << "voice number " << _voice << " out of range\n"; 
+        } else {
+            amp[_voice] = _amp; 
+        }
+    }
 }
 
 
