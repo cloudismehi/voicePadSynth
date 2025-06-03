@@ -10,10 +10,10 @@ void Envelope::init(float _initValue, float _endValue, float _time){
 }
 
 float Envelope::nextValue(){
+    //linear envelope
     float out = (float)(slope * index) + (float)offset; 
-    
-    // std::cout << out << ' '; 
 
+    // check is envelope is done 
     if ((slope < 0) && (out < endValue)) envDone = true; 
     if ((slope > 0) && (out > endValue)) envDone = true; 
 
@@ -23,7 +23,7 @@ float Envelope::nextValue(){
 /* ******************************************************************************** */
 Event::Event(Stream &_stream){
     stream = &_stream; 
-    (*stream).initCheck += 1; 
+    (*stream).initCheck += 1; // just set for checks - might delete later 
 }
 
 int Event::newEvent(){

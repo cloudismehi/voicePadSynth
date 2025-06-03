@@ -59,13 +59,14 @@ class Event {
         std::vector< std::function<void(float _newVal, int _voice)> > queue; 
         std::vector< std::tuple<float, int, float> > queueData; // newVal, voice, time
         std::vector< std::string > commandNames; 
-        std::vector< float > curVal; 
+        std::vector< float > curVal; //for enveloped events
     }; 
 
     std::vector<Commands> events; 
     int openedEvent = -1; 
 
     Event(Stream &_stream); 
+    //create new event
     int newEvent(); 
     void listEvents(); 
     void openEvent(int _eventIndex){ openedEvent = _eventIndex; }
