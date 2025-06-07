@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream> 
 #include <cmath>
 
@@ -15,6 +17,11 @@ class SineOscillator{
 
     void setFreq(float _freq, int _voice); 
     void setFreqMidi(float _note, int _voice);
+    
+    /*
+    if voice is set to -1, it modifies the overall volume of all voices 
+    (independent of individual) amplitudes
+    */
     void setAmp(float _amp, int _voice); 
 
 	~SineOscillator(); 
