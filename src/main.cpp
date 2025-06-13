@@ -10,12 +10,12 @@
 #include "projectSettings.hpp"
 #include "UIhandling.hpp"
 
-int numVoices = 3; 
+int numVoices = 4; 
 
 int main(){
 	
 	Pa_Initialize(); 	
-	Stream audioStream; 
+	Stream audioStream(numVoices); 
 
 	Audio audioInstance;
 	if (!audioInstance.init(sampleRate, framesPerBuffer, audioStream)){
@@ -33,6 +33,7 @@ int main(){
 	sineOsc.setFreqMidi(60.f, 0); 
 	sineOsc.setFreqMidi(64.f, 1); 
 	sineOsc.setFreqMidi(67.f, 2); 
+	sineOsc.setFreqMidi(71.f, 3); 
 	sineOsc.totalAmp = 0.5; 
 	
 	events.addPossibleEvent(sineOsc, &SineOscillator::setFreq, "sineOsc_freq"); 
@@ -47,7 +48,7 @@ int main(){
 
 	//raylib init
 	InitWindow(screenWidth, screenHeight, "this is a life"); 
-	Screen screen(audioStream, audioInstance, events); 
+	Screen screen(audioStream, audioInstance, events, numVoices); 
 	
 	while (!WindowShouldClose()){
 		BeginDrawing(); 

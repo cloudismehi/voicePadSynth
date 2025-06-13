@@ -21,6 +21,12 @@ float Envelope::nextValue(){
 }
 
 /* ******************************************************************************** */
+
+Stream::Stream(int &_numVoices){
+    numVoices = &_numVoices; 
+}
+
+/* ******************************************************************************** */
 Event::Event(Stream &_stream){
     stream = &_stream; 
     (*stream).initCheck += 1; // just set for checks - might delete later 

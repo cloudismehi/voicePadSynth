@@ -11,7 +11,6 @@ int framesPerBuffer = 64;
 
 //raylib settings
 int screenWidth = 1000; 
-int screenHeight = 1000; 
-float backgroundColor[] = {0.f, 30.f, 0.f, 1.f}; 
+int screenHeight = 700; 
 
 #endif

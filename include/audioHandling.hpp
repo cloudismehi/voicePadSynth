@@ -39,7 +39,9 @@ class Stream{
     }; 
     std::vector<ModifierFunc> modFuncs;
 
-
+    std::vector<int> voiceFrequency; 
+    int* numVoices; 
+    
     int initCheck = 0; //after events and audio instance initialize, this should be zero 
 
     template<class Obj>
@@ -48,6 +50,7 @@ class Stream{
         audioGenFunctions.push_back(func); 
     }
 
+    Stream(int &_numVoices); 
 };
 
 class Event {
