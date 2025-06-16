@@ -22,14 +22,10 @@ class Screen{
     
     
     struct Colors{
-        Color background = (Color){64, 76, 79, 255};        //outer space
-        
-        Color accentText = (Color){27, 32, 33, 255};        //eerie black
-        Color idleText = RAYWHITE;         
-        Color shortcutText; 
-        
-        Color accentBox = (Color) {111, 195, 147, 255};     //mint
-        Color shortcutBox = (Color){140, 207, 169, 255};    //celadon
+        Color dark = (Color){27, 32, 33, 255};          //eerie black
+        Color bright = (Color){229, 235, 234, 255};     //anti-flash white
+        Color midTone = (Color){157, 128, 143, 255};    //rose quartz (more like gray); 
+        Color accent = (Color){74, 124, 89, 255};       //viridian (green looking one)
     }; 
     Colors color; 
 
@@ -41,8 +37,6 @@ class Screen{
 
     private:
     
-    void eventsList(float _x, float _y); 
-    void voiceInfo(float _x, float _y); 
-    
     void printMouseCoord(); 
+    void drawPianoRoll(int x, int y); 
 }; 

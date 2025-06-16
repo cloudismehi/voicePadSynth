@@ -10,82 +10,32 @@ Screen::Screen(Stream &_stream, Audio &_audioInstance, Event &_events, int &_num
 }   
 
 void Screen::update(){
-    ClearBackground(color.background);    
+    ClearBackground(color.midTone);    
     
-    eventsList(10, 10); 
+    drawPianoRoll(100, 100); 
+
 }
 
 void Screen::loadFonts(){
-    fonts.mainFont = LoadFont("assets/fonts/TT Interphases Pro Mono Trial Bold.ttf"); 
-    fonts.bodyFont = LoadFont("assets/fonts/TT Interphases Pro Mono Trial Regular.ttf"); 
-}
-
-void Screen::eventsList(float _x, float _y){
-    int fontSize; 
-    Vector2 box; 
-    int maxSize = 0; 
-    std::string bucketText; 
-    
-    //box for the background
-    for (auto event : events->glossary){
-        //calculate the max size of event titles
-        if (event.first.size() > maxSize) {
-            for (int i = maxSize; i < event.first.size(); i++){
-                bucketText.append("g"); 
-            }
-            maxSize = event.first.size(); 
-        }
-    }
-    box = MeasureTextEx(fonts.bodyFont, bucketText.c_str(), 20, 0); 
-    DrawRectangleRounded((Rectangle){_x - 2.5f, _y, box.x + 10.f, box.y + 5.f + (events->glossary.size() * 20)}, 0.30, 4, color.shortcutBox); 
-
-    //box for the title
-    box = MeasureTextEx(fonts.mainFont, "list of events", 20, 0); 
-    DrawRectangleRounded((Rectangle){_x - 2.5f, _y, box.x + 8.f, box.y}, 0.60, 4, color.accentBox); 
-    
-    //title 
-    DrawTextEx(fonts.mainFont, "list of events", (Vector2){_x, _y}, 20, 0, color.accentText); 
-
-    //events
-    int _index = 0; 
-    for (auto event : events->glossary){
-        DrawTextEx(fonts.bodyFont, event.first.c_str(), (Vector2){_x, _y + 20 + (20 * _index++)}, 20, 0, color.idleText); 
-    }
-}
-
-void Screen::voiceInfo(float _x, float _y){
-    int fontSize; 
-    Vector2 box; 
-    int maxSize = 0; 
-    std::string bucketText; 
-    
-    //box for the background
-    for (auto event : events->glossary){
-        //calculate the max size of event titles
-        if (event.first.size() > maxSize) {
-            for (int i = maxSize; i < event.first.size(); i++){
-                bucketText.append("g"); 
-            }
-            maxSize = event.first.size(); 
-        }
-    }
-    box = MeasureTextEx(fonts.bodyFont, bucketText.c_str(), 20, 0); 
-    DrawRectangleRounded((Rectangle){_x - 2.5f, _y, box.x + 10.f, box.y + 5.f + (events->glossary.size() * 20)}, 0.30, 4, color.shortcutBox); 
-
-    //box for the title
-    box = MeasureTextEx(fonts.mainFont, "list of events", 20, 0); 
-    DrawRectangleRounded((Rectangle){_x - 2.5f, _y, box.x + 8.f, box.y}, 0.60, 4, color.accentBox); 
-    
-    //title 
-    DrawTextEx(fonts.mainFont, "list of events", (Vector2){_x, _y}, 20, 0, color.accentText); 
-
-    //events
-    int _index = 0; 
-    for (auto event : events->glossary){
-        DrawTextEx(fonts.bodyFont, event.first.c_str(), (Vector2){_x, _y + 20 + (20 * _index++)}, 20, 0, color.idleText); 
-    }
+    fonts.bodyFont = LoadFont("assets/fonts/VCR_OSD_MONO_1.001.ttf"); 
 }
 
 void Screen::printMouseCoord(){
     DrawText(TextFormat("%d, %d", GetMouseX(), GetMouseY()), 900, 600, 20, BLACK); 
+}
+
+void Screen::drawPianoRoll(int x, int y){
+    int keyWidth = 15; 
+    int whiteKeyHeight = 30;
+    int blackKeyHeight = 10; 
+    int keyOffset = 2; 
+
+    for (int i = 0; i < 14; i++){
+        DrawRectangle(x + (i * (keyWidth + keyOffset)), y, keyWidth, whiteKeyHeight, color.bright); 
+    }
+    for (int i = 0; i < 14; i++){
+        if ((i == 2) or (i == 6) or (i == 9) or (i == 13)); 
+        else 
+            DrawRectangle(x + (keyWidth/2) + (i * (keyWidth + keyOffset)), 100, keyWidth, blackKeyHeight, color.dark); 
+    }
 }
