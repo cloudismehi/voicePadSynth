@@ -1,9 +1,4 @@
-# raylib_inc = -I/Users/fernandosanchez/development/third-libs/raylib/src
-# raylib_lib = -L/Users/fernandosanchez/development/third-libs/raylib/src -l raylib
 raylib_dep = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
-
-# portaudio_inc = -I/Users/fernandosanchez/development/third-libs/audio/portaudio/include
-# portaudio_lib = -L/Users/fernandosanchez/development/third-libs/audio/portaudio/build -lportaudio
 portaudio_dep = -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework CoreServices
 
 voicePadSynth: UIhandling.o audioHandling.o soundSources.o voicePadSynth.o 

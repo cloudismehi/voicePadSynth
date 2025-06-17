@@ -1,12 +1,14 @@
 #include "soundSources.hpp"
 
-SineOscillator::SineOscillator(int _sampleRate, int _bitDepth, int _numVoices){
-    offset = new float[numVoices]; 
-	incr = new float[numVoices]; 
+SineOscillator::SineOscillator(Stream &_stream){
+    stream = &_stream; 
 
-    sampleRate = _sampleRate; 
-    bitDepth = _bitDepth; 
-    numVoices = _numVoices; 
+    offset = new float[(*stream).info.numVoices]; 
+	incr = new float[(*stream).info.numVoices]; 
+
+    sampleRate = (*stream).info.sampleRate; 
+    bitDepth = (*stream).info.bitDepth; 
+    numVoices = (*stream).info.numVoices; 
 
     frequency = new float[numVoices]; 
     amp = new float[numVoices]; 
@@ -16,11 +18,21 @@ SineOscillator::SineOscillator(int _sampleRate, int _bitDepth, int _numVoices){
         amp[i] = 1.f; 
     }
 
+    //max amp 
     if (bitDepth == 16){
         maxAmp = pow(2, bitDepth - 1) - 1; 
     } else if (bitDepth == 32){
         maxAmp = 1.f; 
     }
+}
+
+void SineOscillator::initSynth(){
+    for (int i = 0; i < numVoices; i++){
+        setFreq(midiToFreq((*stream).info.notes[i]), i); 
+        setAmp((*stream).info.amps[i], i); 
+    }
+    setAmp((*stream).info.totalAmp, -1); 
+    init = true; 
 }
 
 void SineOscillator::updateOffsets(){
@@ -30,12 +42,14 @@ void SineOscillator::updateOffsets(){
 }
 
 float SineOscillator::genValue(){
-	float out = 0.f; 
-	for (int i = 0; i < numVoices; i++){
-		out += amp[i] * sinf(2 * M_PI * offset[i]); 
-		if ((offset[i] += incr[i]) >= 1.f) offset[i] = 0.f; 
-	}
-	return (totalAmp * out); 
+    float out = 0.f; 
+    if (init){
+        for (int i = 0; i < numVoices; i++){
+            out += amp[i] * sinf(2 * M_PI * offset[i]); 
+            if ((offset[i] += incr[i]) >= 1.f) offset[i] = 0.f; 
+        }
+    }
+    return (totalAmp * out); 
 }
 
 void SineOscillator::setFreq(float _freq, int _voice){
@@ -44,6 +58,7 @@ void SineOscillator::setFreq(float _freq, int _voice){
     }
     else {
         frequency[_voice] = _freq; 
+        (*stream).info.notes[_voice] = freqToMidi(_freq); 
     }
     updateOffsets(); 
 }
@@ -77,81 +92,10 @@ SineOscillator::~SineOscillator(){
     delete[] amp; 
 }
 
-float SineOscillator::midiToFreq(int _note){
-	return 440.f * exp((log(2) * (_note - 69))/12); 
-}
-
-
-/* ********************************************************************************* */
-
-SineFold::SineFold(int _sampleRate, int _bitDepth, int _numVoices){
-    offset = new float[numVoices]; 
-	incr = new float[numVoices]; 
-
-    sampleRate = _sampleRate; 
-    numVoices = _numVoices; 
-
-    frequency = new float[numVoices]; 
-    amp = new float[numVoices]; 
-
-    for (int i = 0; i < numVoices; i++){
-        frequency[i] = 200.f; 
-        amp[i] = 0.2f; 
-    }
-
-}
-
-void SineFold::updateOffsets(){
-	for (int i = 0; i < numVoices; i++){
-		incr[i] = frequency[i]/sampleRate; 
-	}
-}
-
-float SineFold::genValue(){
-	float out = 0.f; 
-	for (int i = 0; i < numVoices; i++){
-		out += amp[i] * fold(sinf(2 * M_PI * offset[i])); 
-		if ((offset[i] += incr[i]) >= 1.f) offset[i] = 0.f; 
-	}
-	return out; 
-}
-
-void SineFold::setFreq(float _freq, int _voice){
-    if (_voice >= numVoices){
-        std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
-    }
-    else {
-        frequency[_voice] = _freq; 
-    }
-    updateOffsets(); 
-}
-
-void SineFold::setFreqMidi(float _note, int _voice){
-    if (_voice >= numVoices){
-        std::cout << "voice number '" << _voice << "' out of range" << std::endl; 
-    }
-    else {
-        frequency[_voice] = midiToFreq(_note); 
-    }
-    updateOffsets(); 
-}
-
-
-SineFold::~SineFold(){
-	delete[] offset; 
-	delete[] incr; 
-    delete[] frequency; 
-    delete[] amp; 
-}
-
-float SineFold::midiToFreq(int _note){
-	return 440.f * exp((log(2) * (_note - 69))/12); 
-}
-
-float SineFold::fold(float _input){
+float fold(float _input, float _foldAmt){
     float output; 
 
-    output = _input * foldAmt; 
+    output = _input * _foldAmt; 
 
     bool goodToGo = false; 
     while (!goodToGo){

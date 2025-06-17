@@ -11,7 +11,6 @@
 
 #include "portaudio.h"
 
-
 class Envelope{
   public: 
   float slope, offset = 0; 
@@ -38,10 +37,18 @@ class Stream{
         int voice; 
     }; 
     std::vector<ModifierFunc> modFuncs;
-
-    std::vector<int> voiceFrequency; 
-    int* numVoices; 
     
+    struct StreamInfo{
+        float* amps; 
+        float totalAmp; 
+        int* notes; 
+        
+        int numVoices; 
+        int sampleRate = 44100; 
+        int bitDepth = 32; 
+    }; 
+    StreamInfo info; 
+
     int initCheck = 0; //after events and audio instance initialize, this should be zero 
 
     template<class Obj>
@@ -50,7 +57,8 @@ class Stream{
         audioGenFunctions.push_back(func); 
     }
 
-    Stream(int &_numVoices); 
+    Stream(const int _numVoices); 
+    ~Stream(); 
 };
 
 class Event {
@@ -109,3 +117,5 @@ class Audio{
 
 //helper functions
 float midiToFreq(int _note);
+int freqToMidi(int _freq); 
+void midiToName(int _note, int& octave, std::string &note); 

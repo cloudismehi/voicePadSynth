@@ -3,14 +3,19 @@
 #include <iostream> 
 #include <cmath>
 
+#include "audioHandling.hpp"
+
 class SineOscillator{
 	public:
 
 	float *offset, *incr, *frequency, *amp; 
     int sampleRate, bitDepth, maxAmp, numVoices; 
 	float totalAmp = 1.f; 
+    bool init = false; 
+    Stream* stream; 
 
-    SineOscillator(int _sampleRate, int _bitDepth, int _numVoices); 
+    SineOscillator(Stream &_stream); 
+    void initSynth(); 
 
 	float genValue(); 
 	void updateOffsets(); 
@@ -27,29 +32,7 @@ class SineOscillator{
 	~SineOscillator(); 
 
     private: 
-    float midiToFreq(int _note);    
-
 };
 
-class SineFold{
-    public: 
 
-    float *offset, *incr, *frequency, *amp; 
-    int sampleRate, numVoices; 
-
-    float foldAmt = 2; 
-
-    SineFold(int _sampleRate, int _bitDepth, int _numVoices);
-
-    float genValue(); 
-	void updateOffsets(); 
-
-    void setFreq(float _freq, int _voice); 
-    void setFreqMidi(float _note, int _voice);
-    
-    ~SineFold(); 
-
-    private: 
-    float midiToFreq(int _note); 
-    float fold(float _input); 
-}; 
+float fold(float _input, float _foldAmt); 

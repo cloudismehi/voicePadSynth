@@ -66,6 +66,13 @@
         "variant": "cpp",
         "vector": "cpp",
         "list": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "__functional_base": "cpp",
+        "__nullptr": "cpp",
+        "__string": "cpp",
+        "algorithm": "cpp",
+        "chrono": "cpp",
+        "functional": "cpp",
+        "iterator": "cpp"
     }
 }

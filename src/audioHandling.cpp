@@ -22,8 +22,19 @@ float Envelope::nextValue(){
 
 /* ******************************************************************************** */
 
-Stream::Stream(int &_numVoices){
-    numVoices = &_numVoices; 
+Stream::Stream(const int _numVoices){
+    info.numVoices = _numVoices; 
+    info.amps = new float[_numVoices]; 
+    info.notes = new int[_numVoices]; 
+
+    for (int i = 0; i < _numVoices; i++){
+        info.amps[i] = 1.f; 
+    }
+}  
+
+Stream::~Stream(){
+    delete[] info.amps; 
+    delete[] info.notes; 
 }
 
 /* ******************************************************************************** */
@@ -206,4 +217,52 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
 
 float midiToFreq(int _note){
 	return 440.f * exp((log(2) * (_note - 69))/12); 
+}
+
+int freqToMidi(int _freq){
+    return static_cast<int>(std::round(69 + 12 * std::log2(_freq / 440.0)));
+}
+
+void midiToName(int _note, int& octave, std::string &note){
+    octave = (_note / 12) - 2; 
+    int remaind = _note % 12; 
+
+    switch (remaind){
+        case 0: 
+            note = "C"; 
+            break; 
+        case 1: 
+            note = "C#"; 
+            break; 
+        case 2: 
+            note = "D"; 
+            break; 
+        case 3: 
+            note = "D#"; 
+            break; 
+        case 4: 
+            note = "E"; 
+            break; 
+        case 5: 
+            note = "F"; 
+            break; 
+        case 6: 
+            note = "F#"; 
+            break; 
+        case 7: 
+            note = "G"; 
+            break; 
+        case 8: 
+            note = "G#"; 
+            break; 
+        case 9: 
+            note = "A"; 
+            break; 
+        case 10: 
+            note = "A#"; 
+            break; 
+        case 11: 
+            note = "B"; 
+            break; 
+    }
 }
