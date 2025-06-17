@@ -130,28 +130,48 @@ void Screen::drawPianoRoll(int x, int y){
 void Screen::drawVoiceInfo(int x, int y){
     int maxNote = -2; 
     int minNote = 130; 
+    //title
     DrawTextEx(text.thickFont, "voice info", (Vector2){(float)x, (float)y}, 
     text.titleFontSize, text.titleSpacing, color.accent); 
+
+    //note names
     for (int i = 0 ; i < (*stream).info.numVoices; i++){
         DrawTextEx(text.thickFont, TextFormat("Voice %d", i), 
             (Vector2){(float)(x + 10), (float)(y + 25 + (i * 25))}, 
-            text.titleFontSize, text.bodySpacing, color.voiceColors[i]);
-         
+            text.titleFontSize, text.bodySpacing, color.midToneDark);
+
         std::string name; 
         int oct; 
         midiToName((*stream).info.notes[i], oct, name); 
-        DrawTextEx(text.bodyFont, TextFormat("%s %d", name.c_str(), oct), 
+        DrawTextEx(text.bodyFont, TextFormat("%s%d", name.c_str(), oct), 
             (Vector2){(float)(x + 100), (float)(y + 28 + (i * 25))}, 
+            text.bodyFontSize, text.bodySpacing, color.bright); 
+        
+        DrawTextEx(text.bodyFont, TextFormat("%0.2f", (*stream).info.amps[i]), 
+            (Vector2){(float)(x + 160), (float)(y + 28 + (i * 25))}, 
             text.bodyFontSize, text.bodySpacing, color.bright); 
         
         if ((*stream).info.notes[i] > maxNote) maxNote = (*stream).info.notes[i]; 
         if ((*stream).info.notes[i] < minNote) minNote = (*stream).info.notes[i]; 
     }
-    DrawRectangle((x + 170), (y + 20), 250, 100, color.midToneDark); 
-    // DrawRectangleLinesEx((Rectangle){(float)(x + 170), (float)(y + 20), 250, 100}, 2, BLACK); 
+    DrawTextEx(text.bodyFont, "notes", 
+        (Vector2){(float)(x + 90), (float)(y + 28 + ((*stream).info.numVoices * 25))}, 
+        text.bodyFontSize, text.bodySpacing, color.bright); 
+
+    DrawTextEx(text.bodyFont, "amp", 
+        (Vector2){(float)(x + 150), (float)(y + 28 + ((*stream).info.numVoices * 25))}, 
+        text.bodyFontSize, text.bodySpacing, color.bright); 
+
+    DrawRectangle((x + 200), (y + 20), 50, 100, color.midToneDark); 
+    
+    //draw little circles and rectangles
     for (int i = 0 ; i < (*stream).info.numVoices; i++){
         float normNote = ((float)(*stream).info.notes[i] - minNote) / (maxNote - minNote); 
-        DrawCircle((x + 200), (y + 30 + (normNote * 80)), 5, color.voiceColors[i]); 
+        Color circleColor = color.voiceColors[i]; 
+        circleColor.a = 255 * (*stream).info.amps[i]; 
+        DrawCircle((x + 225), (y + 30 + ((1 - normNote) * 80)), 5, circleColor); 
+
+        DrawRectangle((float)(x + 135), (float)(y + 35 + (i * 25)), 10, 4, circleColor); 
     }
     
 }

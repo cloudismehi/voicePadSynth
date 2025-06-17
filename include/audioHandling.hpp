@@ -42,7 +42,9 @@ class Stream{
         float* amps; 
         float totalAmp; 
         int* notes; 
-        
+        float* bucket; 
+        float* bucket2; 
+
         int numVoices; 
         int sampleRate = 44100; 
         int bitDepth = 32; 

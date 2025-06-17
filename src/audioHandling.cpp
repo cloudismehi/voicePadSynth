@@ -26,6 +26,8 @@ Stream::Stream(const int _numVoices){
     info.numVoices = _numVoices; 
     info.amps = new float[_numVoices]; 
     info.notes = new int[_numVoices]; 
+    info.bucket = new float[_numVoices]; 
+    info.bucket2 = new float[_numVoices]; 
 
     for (int i = 0; i < _numVoices; i++){
         info.amps[i] = 1.f; 
@@ -35,6 +37,8 @@ Stream::Stream(const int _numVoices){
 Stream::~Stream(){
     delete[] info.amps; 
     delete[] info.notes; 
+    delete[] info.bucket; 
+    delete[] info.bucket2; 
 }
 
 /* ******************************************************************************** */

@@ -36,7 +36,7 @@ int main(){
 	audioStream.info.notes[2] = 67; 
 	audioStream.info.notes[3] = 71; 
 
-	audioStream.info.totalAmp = 0.5; 
+	audioStream.info.totalAmp = 0.2; 
 
 	sineOsc.initSynth(); 
 	
@@ -53,6 +53,8 @@ int main(){
 	events.openEvent(events.newEvent());
 	events.addToEvent("sineOsc_freq", midiToFreq(60), midiToFreq(66), 1, 0); 
 	events.addToEvent("sineOsc_freq", midiToFreq(64), midiToFreq(62), 1, 1); 
+	events.addToEvent("sineOsc_amp", 1.f, 0.5f, 1, 0); 
+	events.closeEvent(); 
 
 	InitWindow(screenWidth, screenHeight, "tito"); 
 	SetTargetFPS(30); 
@@ -63,8 +65,8 @@ int main(){
 		screen.update(); 
 		if (IsKeyPressed(KEY_A)){
 			events.deployEvent(); 
-		}
-	
+		}	
+		
 		EndDrawing(); 
 	}
 

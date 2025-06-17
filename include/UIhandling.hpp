@@ -33,7 +33,7 @@ class Screen{
             (Color){248, 243, 43, 255}, 
             (Color){162, 37, 34, 255}, 
             (Color){41, 51, 92, 255}, 
-            (Color){34, 22, 43, 255}, 
+            (Color){255, 166, 43, 255}, 
         }; 
 
         std::vector<Color> voiceColors; 

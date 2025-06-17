@@ -16,6 +16,7 @@ SineOscillator::SineOscillator(Stream &_stream){
     for (int i = 0; i < numVoices; i++){
         frequency[i] = 200.f; 
         amp[i] = 1.f; 
+        offset[i] = 0.f; 
     }
 
     //max amp 
@@ -47,6 +48,8 @@ float SineOscillator::genValue(){
         for (int i = 0; i < numVoices; i++){
             out += amp[i] * sinf(2 * M_PI * offset[i]); 
             if ((offset[i] += incr[i]) >= 1.f) offset[i] = 0.f; 
+            (*stream).info.bucket[i] = offset[i]; 
+            (*stream).info.bucket2[i] = incr[i]; 
         }
     }
     return (totalAmp * out); 
@@ -80,6 +83,7 @@ void SineOscillator::setAmp(float _amp, int _voice){
             std::cout << "voice number " << _voice << " out of range\n"; 
         } else {
             amp[_voice] = _amp; 
+            (*stream).info.amps[_voice] = _amp; 
         }
     }
 }
