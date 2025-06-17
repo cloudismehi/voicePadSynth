@@ -3,7 +3,7 @@
 **The whole purpose of this file is to list all the things that need implementing**
 
 ### design the ui / program loop and interactability 
-a lot of the UI has been cemented. i want to make the voice little dots have a sort of trail to them kinda like polygraph pens look like, that would be a great way to keep track of how they moved and it would look kinda cute
+event info
 
 ### events system
 the basics of the events system is basically written and implemented, i need to determine a way to keep multiple events from targeting the same voice at the same time - as of right now the behavior is undetermined when it comes to this. 
@@ -16,4 +16,3 @@ i need more voice engines but that's last on the priority list.
 the only envelope determined now is linear, this shouldn't be the only option so i must code another one. i need to implement volume envelopes - not just for all voices but for each individual voice. 
 
 ### troubleshooting
-are the voices actually working? i'm hearing some outages
