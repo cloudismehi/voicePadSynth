@@ -3,7 +3,7 @@
 **The whole purpose of this file is to list all the things that need implementing**
 
 ### design the ui / program loop and interactability 
-event info
+event info worked on a bit. need my frequency changes to be in terms of notes, not frequency
 
 ### events system
 the basics of the events system is basically written and implemented, i need to determine a way to keep multiple events from targeting the same voice at the same time - as of right now the behavior is undetermined when it comes to this. 

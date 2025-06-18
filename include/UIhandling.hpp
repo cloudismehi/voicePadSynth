@@ -23,11 +23,11 @@ class Screen{
     
     
     struct Colors{
-        Color dark = (Color){27, 32, 33, 255};          //eerie black
-        Color bright = (Color){229, 235, 234, 255};     //anti-flash white
-        Color midTone = (Color){157, 128, 143, 255};    //mountbatten pink
-        Color midToneDark = (Color){115, 89, 102, 255};      //eggplant
-        Color accent = (Color){74, 124, 89, 255};       //viridian (green looking one)
+        Color dark = (Color){27, 32, 33, 255};              //eerie black
+        Color bright = (Color){229, 235, 234, 255};         //anti-flash white
+        Color midTone = (Color){157, 128, 143, 255};        //mountbatten pink
+        Color midToneDark = (Color){115, 89, 102, 255};     //eggplant
+        Color accent = (Color){74, 124, 89, 255};           //viridian (green looking one)
         
         Color voiceColorOptions[4] = {
             (Color){248, 243, 43, 255}, 
@@ -70,9 +70,15 @@ class Screen{
     }; 
     PianoSettings piano; 
 
+    struct EventInfo{
+        int eventSelected = 0; 
+    }; 
+    EventInfo eventInfo; 
+    
     private:
     
     void printMouseCoord(); 
     void drawPianoRoll(int x, int y); 
     void drawVoiceInfo(int x, int y); 
+    void drawEventInfo(int x, int y); 
 }; 

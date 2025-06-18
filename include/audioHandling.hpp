@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "portaudio.h"
+#include "raylib.h"
 
 class Envelope{
   public: 
@@ -68,12 +69,14 @@ class Event {
     Stream* stream; 
     int sampleRate = 44100; 
     std::unordered_map<std::string, int> glossary; 
+    std::unordered_map<int, std::string> descriptor; 
     std::vector<std::function<void(float _newVal, int _voice)> > possibleEvents; 
     
     struct Commands{
         std::vector< std::function<void(float _newVal, int _voice)> > queue; 
         std::vector< std::tuple<float, int, float> > queueData; // newVal, voice, time
         std::vector< std::string > commandNames; 
+        std::vector< std::string > commandDescriptor; 
         std::vector< float > curVal; //for enveloped events
     }; 
 
@@ -94,9 +97,16 @@ class Event {
     void deployEvent();
 
     template<class Obj>
-    void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), std::string id){
-        possibleEvents.push_back([&obj, setter](float _newVal, int _voice){(obj.*setter)(_newVal, _voice); }); 
+    void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), 
+            std::string id, std::string _descriptor){
+        
+        possibleEvents.push_back([&obj, setter](float _newVal, int _voice){
+            (obj.*setter)(_newVal, _voice); 
+        }); 
+
         glossary[id] = possibleEvents.size() - 1; 
+        descriptor[possibleEvents.size() - 1] = _descriptor; 
+        
     } 
 };
 

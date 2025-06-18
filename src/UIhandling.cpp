@@ -14,14 +14,17 @@ void Screen::update(){
     ClearBackground(color.dark);    
     
     //piano mappings
-    drawPianoRoll(20, 20); 
+    drawPianoRoll(10, 10); 
 
     //voice info
-    drawVoiceInfo(20, 100); 
+    drawVoiceInfo(10, 90); 
+
+    //events info
+    drawEventInfo(330, 10); 
 }
 
 void Screen::loadFonts(){
-    text.bodyFont = LoadFont("assets/fonts/VCR_OSD_MONO_1.001.ttf"); 
+    text.bodyFont = LoadFont("assets/fonts/upheavtt.ttf"); 
     text.thickFont = LoadFont("assets/fonts/upheavtt.ttf"); 
 }
 
@@ -154,13 +157,14 @@ void Screen::drawVoiceInfo(int x, int y){
         if ((*stream).info.notes[i] > maxNote) maxNote = (*stream).info.notes[i]; 
         if ((*stream).info.notes[i] < minNote) minNote = (*stream).info.notes[i]; 
     }
+    //labels
     DrawTextEx(text.bodyFont, "notes", 
-        (Vector2){(float)(x + 90), (float)(y + 28 + ((*stream).info.numVoices * 25))}, 
-        text.bodyFontSize, text.bodySpacing, color.bright); 
+        (Vector2){(float)(x + 90), (float)(y + 23 + ((*stream).info.numVoices * 25))}, 
+        text.bodyFontSize, text.bodySpacing, color.midTone); 
 
     DrawTextEx(text.bodyFont, "amp", 
-        (Vector2){(float)(x + 150), (float)(y + 28 + ((*stream).info.numVoices * 25))}, 
-        text.bodyFontSize, text.bodySpacing, color.bright); 
+        (Vector2){(float)(x + 160), (float)(y + 23 + ((*stream).info.numVoices * 25))}, 
+        text.bodyFontSize, text.bodySpacing, color.midTone); 
 
     DrawRectangle((x + 200), (y + 20), 50, 100, color.midToneDark); 
     
@@ -174,4 +178,63 @@ void Screen::drawVoiceInfo(int x, int y){
         DrawRectangle((float)(x + 135), (float)(y + 35 + (i * 25)), 10, 4, circleColor); 
     }
     
+    DrawTextEx(text.thickFont, "total amp", 
+        (Vector2){(float)(x), (float)(y + 145)}, text.titleFontSize, 
+        text.titleSpacing, color.midTone); 
+    
+    DrawTextEx(text.thickFont, TextFormat("%0.2f", (*stream).info.totalAmp), 
+        (Vector2){(float)(x + 120), (float)(y + 145)}, text.titleFontSize, 
+        text.titleSpacing, color.midToneDark); 
+}
+
+void Screen::drawEventInfo(int x, int y){
+    //subtitles
+    DrawTextEx(text.thickFont, "events", (Vector2){(float)x, (float)y}, 
+        text.titleFontSize, text.titleSpacing, color.accent); 
+    
+    DrawTextEx(text.bodyFont, "new event [n]", (Vector2){(float) (x), (float)(y + 20)}, 
+        text.bodyFontSize, text.bodySpacing, color.midTone); 
+    
+    DrawTextEx(text.bodyFont, "open event [j]", (Vector2){(float) (x), (float)(y + 40)}, 
+        text.bodyFontSize, text.bodySpacing, color.midTone); 
+    
+    DrawTextEx(text.bodyFont, "deploy event (first) [m]", 
+        (Vector2){(float) (x + 125), (float)(y + 20)}, 
+        text.bodyFontSize, text.bodySpacing, color.midTone); 
+    
+    DrawTextEx(text.bodyFont, "close event [k]", 
+        (Vector2){(float) (x + 125), (float)(y + 40)}, 
+        text.bodyFontSize, text.bodySpacing, color.midTone); 
+
+    int yIndex = 0; 
+    for (int i = eventInfo.eventSelected; i < eventInfo.eventSelected + 3; i++){
+        if (i < (*events).events.size()){
+            if (i == eventInfo.eventSelected){
+                DrawTextEx(text.bodyFont, TextFormat("->event %d", i), 
+                    (Vector2){(float)(x + 5), (float)(y + 70 + (20 * (yIndex++)))}, 
+                    text.bodyFontSize, text.bodySpacing, color.bright); 
+            } else {
+                DrawTextEx(text.bodyFont, TextFormat("->event %d", i), 
+                    (Vector2){(float)(x + 5), (float)(y + 80 + (20 * (yIndex++)))}, 
+                    text.bodyFontSize, text.bodySpacing, color.bright); 
+                }
+        }
+    }
+    DrawRectangleLinesEx((Rectangle){(float)(x), (float)(y + 65), 90, 25}, 2, color.midTone); 
+    
+    DrawRectangle(x + 130, y + 80, 350, 100, color.midToneDark); 
+    int _index = 0; 
+    for (auto command : (*events).events[eventInfo.eventSelected].commandDescriptor){
+        DrawTextEx(text.bodyFont, command.c_str(), 
+            (Vector2){(float)(x + 135), (float)(y + 85 + (_index * 20))}, text.bodyFontSize, 
+            text.bodySpacing, color.bright); 
+        _index++; 
+    }
+
+    //poll menu input
+    if (IsKeyPressed(KEY_DOWN)) eventInfo.eventSelected++; 
+    if ((eventInfo.eventSelected) >= (*events).events.size()) eventInfo.eventSelected--; 
+    if (IsKeyPressed(KEY_UP)) eventInfo.eventSelected--;     
+    if ((eventInfo.eventSelected) < 0) eventInfo.eventSelected++; 
+
 }

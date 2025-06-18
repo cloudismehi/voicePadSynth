@@ -73,11 +73,14 @@ void SineOscillator::setFreqMidi(float _note, int _voice){
     else {
         frequency[_voice] = midiToFreq(_note); 
     }
-    updateOffsets(); 
+    updateOffsets();   
 }
 
 void SineOscillator::setAmp(float _amp, int _voice){
-    if (_voice == -1) totalAmp = _amp; 
+    if (_voice == -1) {
+        totalAmp = _amp; 
+        (*stream).info.totalAmp = _amp; 
+    }
     else {
         if (_voice >= numVoices){
             std::cout << "voice number " << _voice << " out of range\n"; 
