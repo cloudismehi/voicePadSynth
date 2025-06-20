@@ -70,6 +70,7 @@ class Event {
     int sampleRate = 44100; 
     std::unordered_map<std::string, int> glossary; 
     std::unordered_map<int, std::string> descriptor; 
+    std::unordered_map<int, bool> isFreq; 
     std::vector<std::function<void(float _newVal, int _voice)> > possibleEvents; 
     
     struct Commands{
@@ -77,6 +78,7 @@ class Event {
         std::vector< std::tuple<float, int, float> > queueData; // newVal, voice, time
         std::vector< std::string > commandNames; 
         std::vector< std::string > commandDescriptor; 
+        std::vector< bool > isFreq; 
         std::vector< float > curVal; //for enveloped events
     }; 
 
@@ -96,9 +98,13 @@ class Event {
     void deployEvent(int _eventIndex);
     void deployEvent();
 
+    void deleteEvent(int _eventIndex); 
+    void deleteCommandFromEvent(int _eventIndex, int _commandIndex); 
+    
+
     template<class Obj>
     void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), 
-            std::string id, std::string _descriptor){
+            std::string id, std::string _descriptor, bool _isFreq = false){
         
         possibleEvents.push_back([&obj, setter](float _newVal, int _voice){
             (obj.*setter)(_newVal, _voice); 
@@ -106,7 +112,7 @@ class Event {
 
         glossary[id] = possibleEvents.size() - 1; 
         descriptor[possibleEvents.size() - 1] = _descriptor; 
-        
+        isFreq[possibleEvents.size() - 1] = _isFreq; 
     } 
 };
 

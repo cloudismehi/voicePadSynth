@@ -13,14 +13,26 @@ Screen::Screen(Stream &_stream, Audio &_audioInstance, Event &_events, const int
 void Screen::update(){
     ClearBackground(color.dark);    
     
+    //keep track of frames
+    if (++frameCount > 30) frameCount = 0; 
+
+    pollEvents();     
     //piano mappings
     drawPianoRoll(10, 10); 
-
     //voice info
     drawVoiceInfo(10, 90); 
-
     //events info
     drawEventInfo(330, 10); 
+    
+    
+    if (grayOutMainScreen){
+        DrawRectangle(0, 0, width, height, color.grayOutColor); 
+    }
+
+    if (menuInfo.deleteMenu){
+        drawDeleteMenu((width / 2) - 250, (height / 2) - 100); 
+        
+    }
 }
 
 void Screen::loadFonts(){
@@ -34,6 +46,92 @@ void Screen::assignVoiceColors(){
     for(int i = 0 ; i < (*stream).info.numVoices; i++){
         color.voiceColors.push_back(color.voiceColorOptions[index]); 
         if (++index >= 4) index = 0; 
+    }
+}
+
+void Screen::pollEvents(){
+    //event menu input
+    if (menuInfo.eventMenu){
+        if (IsKeyPressed(KEY_DOWN)) {
+            menuInfo.mainScreenSelection++; 
+            printf("trigger down\n"); 
+        }
+        if ((menuInfo.mainScreenSelection) >= (*events).events.size()) menuInfo.mainScreenSelection--; 
+        if (IsKeyPressed(KEY_UP)) {
+            menuInfo.mainScreenSelection--;     
+            printf("trigger up\n"); 
+        }
+        if ((menuInfo.mainScreenSelection) < 0) menuInfo.mainScreenSelection++; 
+        
+        //open delete menu
+        if (IsKeyPressed(KEY_D)){
+            printf("trigger d\n"); 
+            grayOutMainScreen = true; 
+            menuInfo.eventMenu = false; 
+            menuInfo.deleteMenu = true; 
+        }
+
+        //trigger next event
+        if (IsKeyPressed(KEY_M)){
+            printf("trigger m\n"); 
+            if ((*events).events.size() > 0)
+                (*events).deployEvent(); 
+            else printf("no events\n"); 
+        }	
+    }
+
+    //delete menu 
+    if (menuInfo.deleteMenu){
+        if (menuInfo.deleteCommandMenu){
+            //delete a command
+            int _max = (*events).events[menuInfo.mainScreenSelection].commandDescriptor.size(); 
+            if (IsKeyPressed(KEY_DOWN)){
+                printf("tigger down\n"); 
+                menuInfo.deleteCommandSelection++; 
+                if (menuInfo.deleteCommandSelection >= _max) menuInfo.deleteCommandSelection--; 
+            }
+            if (IsKeyPressed(KEY_UP)){
+                printf("trigger up\n"); 
+                menuInfo.deleteCommandSelection--; 
+                if (menuInfo.deleteCommandSelection < 0) menuInfo.deleteCommandSelection++; 
+            }
+            if (IsKeyPressed(KEY_ENTER)){
+                printf("trigger enter\n"); 
+                (*events).deleteCommandFromEvent(menuInfo.mainScreenSelection, menuInfo.deleteCommandSelection);
+                menuInfo.exitOutOfDeleteMenu = true;  
+            }
+        } else {
+            //delete menu
+            if (IsKeyPressed(KEY_LEFT)){
+                printf("trigger left\n"); 
+                if (--menuInfo.deleteMenuSelection < 0) menuInfo.deleteMenuSelection = 1;
+            }
+            if (IsKeyPressed(KEY_RIGHT)){
+                printf("trigger right\n"); 
+                if (++menuInfo.deleteMenuSelection > 1) menuInfo.deleteMenuSelection = 0;
+            }
+            if (IsKeyPressed(KEY_ENTER)){
+                printf("trigger enter\n"); 
+                if (menuInfo.deleteMenuSelection == 0){
+                    (*events).deleteEvent(menuInfo.mainScreenSelection); 
+                    menuInfo.exitOutOfDeleteMenu = true; 
+                } else if (menuInfo.deleteMenuSelection == 1){
+                    menuInfo.deleteCommandMenu = true; 
+                }
+                
+            }
+        }
+        //exit out of menu
+        if (menuInfo.exitOutOfDeleteMenu){
+            menuInfo.deleteMenuSelection = 0; 
+            menuInfo.deleteMenu = false; 
+            menuInfo.deleteCommandSelection = 0; 
+            menuInfo.deleteCommandMenu = false; 
+            menuInfo.eventMenu = true; 
+            menuInfo.exitOutOfDeleteMenu = false; 
+
+            grayOutMainScreen = false; 
+        }
     }
 }
 
@@ -195,46 +293,87 @@ void Screen::drawEventInfo(int x, int y){
     DrawTextEx(text.bodyFont, "new event [n]", (Vector2){(float) (x), (float)(y + 20)}, 
         text.bodyFontSize, text.bodySpacing, color.midTone); 
     
-    DrawTextEx(text.bodyFont, "open event [j]", (Vector2){(float) (x), (float)(y + 40)}, 
-        text.bodyFontSize, text.bodySpacing, color.midTone); 
-    
     DrawTextEx(text.bodyFont, "deploy event (first) [m]", 
         (Vector2){(float) (x + 125), (float)(y + 20)}, 
         text.bodyFontSize, text.bodySpacing, color.midTone); 
     
-    DrawTextEx(text.bodyFont, "close event [k]", 
-        (Vector2){(float) (x + 125), (float)(y + 40)}, 
+    DrawTextEx(text.bodyFont, "add to event [a]", 
+        (Vector2){(float) (x + 335), (float)(y + 20)}, 
+        text.bodyFontSize, text.bodySpacing, color.midTone); 
+
+    DrawTextEx(text.bodyFont, "delete [d]", 
+        (Vector2){(float) (x + 490), (float)(y + 20)}, 
         text.bodyFontSize, text.bodySpacing, color.midTone); 
 
     int yIndex = 0; 
-    for (int i = eventInfo.eventSelected; i < eventInfo.eventSelected + 3; i++){
+    for (int i = menuInfo.mainScreenSelection; i < menuInfo.mainScreenSelection + 3; i++){
         if (i < (*events).events.size()){
-            if (i == eventInfo.eventSelected){
+            if (i == menuInfo.mainScreenSelection){
                 DrawTextEx(text.bodyFont, TextFormat("->event %d", i), 
-                    (Vector2){(float)(x + 5), (float)(y + 70 + (20 * (yIndex++)))}, 
+                    (Vector2){(float)(x + 5), (float)(y + 60 + (20 * (yIndex++)))}, 
                     text.bodyFontSize, text.bodySpacing, color.bright); 
             } else {
                 DrawTextEx(text.bodyFont, TextFormat("->event %d", i), 
-                    (Vector2){(float)(x + 5), (float)(y + 80 + (20 * (yIndex++)))}, 
+                    (Vector2){(float)(x + 5), (float)(y + 70 + (20 * (yIndex++)))}, 
                     text.bodyFontSize, text.bodySpacing, color.bright); 
                 }
         }
     }
-    DrawRectangleLinesEx((Rectangle){(float)(x), (float)(y + 65), 90, 25}, 2, color.midTone); 
+    DrawRectangleLinesEx((Rectangle){(float)(x), (float)(y + 55), 90, 25}, 2, color.midTone); 
     
-    DrawRectangle(x + 130, y + 80, 350, 100, color.midToneDark); 
+    //descriptors
+    DrawRectangle(x + 130, y + 50, 350, 100, color.midToneDark); 
     int _index = 0; 
-    for (auto command : (*events).events[eventInfo.eventSelected].commandDescriptor){
+    for (auto command : (*events).events[menuInfo.mainScreenSelection].commandDescriptor){
         DrawTextEx(text.bodyFont, command.c_str(), 
-            (Vector2){(float)(x + 135), (float)(y + 85 + (_index * 20))}, text.bodyFontSize, 
+            (Vector2){(float)(x + 135), (float)(y + 55 + (_index * 20))}, text.bodyFontSize, 
             text.bodySpacing, color.bright); 
         _index++; 
     }
+}
 
-    //poll menu input
-    if (IsKeyPressed(KEY_DOWN)) eventInfo.eventSelected++; 
-    if ((eventInfo.eventSelected) >= (*events).events.size()) eventInfo.eventSelected--; 
-    if (IsKeyPressed(KEY_UP)) eventInfo.eventSelected--;     
-    if ((eventInfo.eventSelected) < 0) eventInfo.eventSelected++; 
+void Screen::drawDeleteMenu(int x, int y){
+    //bkg
+    DrawRectangle(x, y, 500, 150, color.midTone); 
+   
+    //little main menu animation
+    Color titleColor = (frameCount > 15) ? color.dark : color.red; 
+
+    if (!menuInfo.deleteCommandMenu){
+        DrawTextEx(text.thickFont, "what do you want to delete?", 
+            (Vector2){(float)(x + 33), (float)(y + 5)}, text.titleFontSize * 1.5, 
+            text.titleSpacing, titleColor); 
+        
+        DrawTextEx(text.thickFont, "the event", (Vector2){(float)(x + 20), (float)(y + 70)},
+            text.titleFontSize * 1.2, text.titleSpacing, color.dark); 
+        
+        DrawTextEx(text.thickFont, "a command in the event", (Vector2){(float)(x + 170), (float)(y + 70)},
+            text.titleFontSize * 1.2, text.titleSpacing, color.dark); 
+        
+        if (menuInfo.deleteMenuSelection == 0){
+            DrawRectangleLinesEx((Rectangle){(float)(x + 15), (float)(y + 65), 135, 30}, 
+                2, color.midToneDark); 
+        } else if (menuInfo.deleteMenuSelection == 1){
+            DrawRectangleLinesEx((Rectangle){(float)(x + 165), (float)(y + 65), 305, 30}, 
+                2, color.midToneDark); 
+        }
+    } else {
+        DrawTextEx(text.thickFont, "what command?", 
+            (Vector2){(float)(x + 130), (float)(y + 5)}, text.titleFontSize * 1.5, 
+            text.titleSpacing, titleColor); 
+        
+        int printIndex = 0; //for orienting the commands
+        for (int i = menuInfo.deleteCommandSelection; i < menuInfo.deleteCommandSelection + 2; i++){
+            if (i < (*events).events[menuInfo.mainScreenSelection].commandDescriptor.size()){
+                DrawTextEx(text.thickFont, 
+                    (*events).events[menuInfo.mainScreenSelection].commandDescriptor[i].c_str(), 
+                    (Vector2){(float)(x + 5), (float)(y + 70 + (25 * printIndex))},
+                    text.bodyFontSize * 1.3, text.bodySpacing, color.dark); 
+            }
+            printIndex++; 
+        }
+        Color boxColor = (frameCount > 15) ? color.midToneDark : color.red; 
+        DrawRectangleLinesEx((Rectangle){(float)(x + 1),(float)(y + 65), 400, 30}, 2, boxColor); 
+    }
 
 }

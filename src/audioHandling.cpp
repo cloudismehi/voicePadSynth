@@ -57,7 +57,6 @@ void Event::listEvents(){
         for (auto event : events){
           std::cout << "event " << eventIndex << ":\n";
           for (int i = 0; i < event.queue.size(); i++){
-            // std::cout << " " << event.commandDescriptor[i] << " to " << std::get<0>(event.queueData[i]) << " on voice " << std::get<1>(event.queueData[i]) << '\n';
             std::cout << " " << event.commandDescriptor[i] << '\n'; 
           }
           eventIndex++;
@@ -65,7 +64,9 @@ void Event::listEvents(){
     std::cout << '\n';
 }
 
-void Event::addToEvent(int _eventIndex, std::string _id, float _curVal, float _newVal, float _time, int _voice){
+void Event::addToEvent(int _eventIndex, std::string _id, float _curVal, 
+    float _newVal, float _time, int _voice)
+{
     events[_eventIndex].queue.push_back(possibleEvents[glossary.at(_id)]); 
     events[_eventIndex].queueData.push_back(std::make_tuple(_newVal, _voice, _time));
     events[_eventIndex].commandNames.push_back(_id); 
@@ -76,6 +77,7 @@ void Event::addToEvent(int _eventIndex, std::string _id, float _curVal, float _n
         _newVal, _voice);
 
     events[_eventIndex].commandDescriptor.push_back(descriptorFormated); 
+    events[_eventIndex].isFreq.push_back(isFreq.at(glossary.at(_id))); 
     events[_eventIndex].curVal.push_back(_curVal); 
 }
 
@@ -89,11 +91,22 @@ void Event::addToEvent(std::string _id, float _curVal, float _newVal, float _tim
     events[openedEvent].commandNames.push_back(_id); 
     
     std::string descriptorFormated = ""; 
-    descriptorFormated += TextFormat("%s to %f on voice %d",
-        descriptor.at(glossary.at(_id)).c_str(), 
-        _newVal, _voice);
+    if (isFreq.at(glossary.at(_id))){
+        int _oct = 0; 
+        std::string _name = ""; 
+        midiToName(freqToMidi(_newVal), _oct, _name); 
+        
+        descriptorFormated += TextFormat("%s to %s%d on voice %d",
+            descriptor.at(glossary.at(_id)).c_str(), 
+            _name.c_str(), _oct, _voice);    
+    } else {
+        descriptorFormated += TextFormat("%s to %0.2f on voice %d",
+            descriptor.at(glossary.at(_id)).c_str(), 
+            _newVal, _voice);
+    }
     
     events[openedEvent].commandDescriptor.push_back(descriptorFormated); 
+    events[openedEvent].isFreq.push_back(isFreq.at(glossary.at(_id))); 
     events[openedEvent].curVal.push_back(_curVal); 
 }
 
@@ -138,7 +151,21 @@ void Event::deployEvent(){
     events.erase(events.begin()); 
 }
 
+void Event::deleteEvent(int _eventIndex){
+    events.erase(events.begin() + _eventIndex); 
+}
 
+void Event::deleteCommandFromEvent(int _eventIndex, int _commandIndex){
+    if (events[_eventIndex].queue.size() == 1) events.erase(events.begin() + _eventIndex); 
+    else {
+        events[_eventIndex].queue.erase(events[_eventIndex].queue.begin() + _commandIndex); 
+        events[_eventIndex].queueData.erase(events[_eventIndex].queueData.begin() + _commandIndex); 
+        events[_eventIndex].commandNames.erase(events[_eventIndex].commandNames.begin() + _commandIndex); 
+        events[_eventIndex].commandDescriptor.erase(events[_eventIndex].commandDescriptor.begin() + _commandIndex); 
+        events[_eventIndex].isFreq.erase(events[_eventIndex].isFreq.begin() + _commandIndex); 
+        events[_eventIndex].curVal.erase(events[_eventIndex].curVal.begin() + _commandIndex); 
+    }
+}
 
 /* ******************************************************************************** */
 

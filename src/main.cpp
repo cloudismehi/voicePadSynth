@@ -25,6 +25,7 @@ int main(){
 	SineOscillator sineOsc(audioStream); 
 
 	Screen screen(audioStream, audioInstance, events, numVoices); 
+	screen.setDim(screenWidth, screenHeight); 
 
 	if (audioStream.initCheck != 2){
 		std::cout << "error! audio stream init check failed\n";
@@ -40,8 +41,8 @@ int main(){
 
 	sineOsc.initSynth(); 
 	
-	events.addPossibleEvent(sineOsc, &SineOscillator::setFreq, "sineOsc_freq", "freq change"); 
-	events.addPossibleEvent(sineOsc, &SineOscillator::setFreqMidi, "sineOsc_freqMidi", "freq change, midi input");
+	events.addPossibleEvent(sineOsc, &SineOscillator::setFreq, "sineOsc_freq", "freq change", true); 
+	events.addPossibleEvent(sineOsc, &SineOscillator::setFreqMidi, "sineOsc_freqMidi", "freq change, midi input", true);
 	events.addPossibleEvent(sineOsc, &SineOscillator::setAmp, "sineOsc_amp", "amp change"); 
 	
 	audioStream.addFunction(sineOsc, &SineOscillator::genValue); 
@@ -84,19 +85,12 @@ int main(){
 	InitWindow(screenWidth, screenHeight, "tito"); 
 	SetTargetFPS(30); 
 
-	system("clear"); 
-	events.listEvents(); 
-
+	// system("clear"); `
 	while (!WindowShouldClose()){
 		BeginDrawing(); 
 
-		screen.update(); 
-		if (IsKeyPressed(KEY_M)){
-			if (events.events.size() > 0)
-				events.deployEvent(); 
-			else printf("no events\n"); 
-		}	
-		
+		screen.update(); //also polls events
+				
 		EndDrawing(); 
 	}
 
