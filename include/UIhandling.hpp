@@ -1,7 +1,9 @@
 #include <iostream>
 #include <string> 
 #include <vector>
+
 #include <raylib.h>
+
 
 #include "audioHandling.hpp"
 
@@ -72,6 +74,11 @@ class Screen{
         int whiteFontSize = 20; 
         int blackFontSize = 15; 
 
+        int note = 60; 
+        int octave = 4; 
+        float time = 0; 
+        float incr = 0.25; 
+        int voice = 0; 
     }; 
     PianoSettings piano; 
 
@@ -79,12 +86,14 @@ class Screen{
         int mainScreenSelection = 0; 
         int deleteMenuSelection = 0; 
         int deleteCommandSelection = 0; 
+        int commandSelection = 0; 
+        int highlightCommand = -1; 
 
-        bool eventMenu = true; 
-        
+        bool mainMenu = true; 
         bool deleteMenu = false; 
         bool deleteCommandMenu = false; 
         bool exitOutOfDeleteMenu = false; 
+        bool freqChangeMenu = false; 
     }; 
     MenuInfo menuInfo; 
     
@@ -92,8 +101,19 @@ class Screen{
     
     void pollEvents(); 
     void printMouseCoord(); 
+    void grayScreen(); 
+
+    //main menu elements 
     void drawPianoRoll(int x, int y); 
     void drawVoiceInfo(int x, int y); 
     void drawEventInfo(int x, int y); 
+    void drawCommandOptions(int x, int y);
+    
+    //delete menu optionts
     void drawDeleteMenu(int x, int y); 
+    void pollDeleteMenu(); 
+
+    //freq change elements
+    void drawFreqChange(int x, int y);
+    void pollFreqChange(); 
 }; 

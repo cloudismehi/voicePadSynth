@@ -72,9 +72,21 @@ void Event::addToEvent(int _eventIndex, std::string _id, float _curVal,
     events[_eventIndex].commandNames.push_back(_id); 
     
     std::string descriptorFormated = ""; 
-    descriptorFormated += TextFormat("%s to %f on voice %d",
-        descriptor.at(glossary.at(_id)).c_str(), 
-        _newVal, _voice);
+    if (isFreq.at(glossary.at(_id))){
+        int _oct = 0; 
+        std::string _name = ""; 
+        midiToName(freqToMidi(_newVal), _oct, _name); 
+        
+        descriptorFormated += TextFormat("%s to %s%d on voice %d",
+            descriptor.at(glossary.at(_id)).c_str(), 
+            _name.c_str(), _oct, _voice);    
+    } else if (_voice == -1){
+        descriptorFormated += TextFormat("global %s to %0.2f", descriptor.at(glossary.at(_id)).c_str(), _newVal); 
+    } else {
+        descriptorFormated += TextFormat("%s to %0.2f on voice %d",
+            descriptor.at(glossary.at(_id)).c_str(), 
+            _newVal, _voice);
+    }
 
     events[_eventIndex].commandDescriptor.push_back(descriptorFormated); 
     events[_eventIndex].isFreq.push_back(isFreq.at(glossary.at(_id))); 
@@ -99,6 +111,8 @@ void Event::addToEvent(std::string _id, float _curVal, float _newVal, float _tim
         descriptorFormated += TextFormat("%s to %s%d on voice %d",
             descriptor.at(glossary.at(_id)).c_str(), 
             _name.c_str(), _oct, _voice);    
+    } else if (_voice == -1){
+        descriptorFormated += TextFormat("global %s to %0.2f", descriptor.at(glossary.at(_id)).c_str(), _newVal); 
     } else {
         descriptorFormated += TextFormat("%s to %0.2f on voice %d",
             descriptor.at(glossary.at(_id)).c_str(), 
@@ -223,8 +237,7 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
             modifierFunc[i].func(modifierFunc[i].newVal, modifierFunc[i].voice); 
             (*audioStream).modFuncs.erase((*audioStream).modFuncs.begin() + i); 
             modifierFunc = audioStream->modFuncs; 
-        } 
-        
+        }    
     }
     
 	for (int i = 0; i < framesPerBuffer; i++){
@@ -269,7 +282,7 @@ int freqToMidi(int _freq){
 }
 
 void midiToName(int _note, int& octave, std::string &note){
-    octave = (_note / 12) - 2; 
+    octave = ((_note / 12) - 2) + 1; 
     int remaind = _note % 12; 
 
     switch (remaind){

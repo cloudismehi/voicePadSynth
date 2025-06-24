@@ -17,21 +17,36 @@ void Screen::update(){
     if (++frameCount > 30) frameCount = 0; 
 
     pollEvents();     
+
+    //main window
     //piano mappings
-    drawPianoRoll(10, 10); 
+    DrawTextEx(text.thickFont, "piano mappings", (Vector2){10.f, 10.f}, 
+    text.titleFontSize, text.titleSpacing, color.accent); 
+    drawPianoRoll(10, 35); 
     //voice info
     drawVoiceInfo(10, 90); 
     //events info
     drawEventInfo(330, 10); 
+    //commands info
+    drawCommandOptions(10, 280); 
     
-    
+    //gray out flag (kinda useless rn)
     if (grayOutMainScreen){
-        DrawRectangle(0, 0, width, height, color.grayOutColor); 
+        grayScreen(); 
+    }
+    
+    //delete menu
+    if (menuInfo.deleteMenu){
+        grayScreen(); 
+        drawDeleteMenu((width / 2) - 250, (height / 2) - 100); 
+        pollDeleteMenu(); 
     }
 
-    if (menuInfo.deleteMenu){
-        drawDeleteMenu((width / 2) - 250, (height / 2) - 100); 
-        
+    //freq change menu
+    if (menuInfo.freqChangeMenu){
+        // grayScreen(); 
+        drawFreqChange(10, 420); 
+        pollFreqChange(); 
     }
 }
 
@@ -50,8 +65,10 @@ void Screen::assignVoiceColors(){
 }
 
 void Screen::pollEvents(){
-    //event menu input
-    if (menuInfo.eventMenu){
+    //main screen 
+    if (menuInfo.mainMenu){
+
+        //event menu
         if (IsKeyPressed(KEY_DOWN)) {
             menuInfo.mainScreenSelection++; 
             printf("trigger down\n"); 
@@ -66,8 +83,7 @@ void Screen::pollEvents(){
         //open delete menu
         if (IsKeyPressed(KEY_D)){
             printf("trigger d\n"); 
-            grayOutMainScreen = true; 
-            menuInfo.eventMenu = false; 
+            menuInfo.mainMenu = false; 
             menuInfo.deleteMenu = true; 
         }
 
@@ -78,77 +94,62 @@ void Screen::pollEvents(){
                 (*events).deployEvent(); 
             else printf("no events\n"); 
         }	
-    }
-
-    //delete menu 
-    if (menuInfo.deleteMenu){
-        if (menuInfo.deleteCommandMenu){
-            //delete a command
-            int _max = (*events).events[menuInfo.mainScreenSelection].commandDescriptor.size(); 
-            if (IsKeyPressed(KEY_DOWN)){
-                printf("tigger down\n"); 
-                menuInfo.deleteCommandSelection++; 
-                if (menuInfo.deleteCommandSelection >= _max) menuInfo.deleteCommandSelection--; 
-            }
-            if (IsKeyPressed(KEY_UP)){
-                printf("trigger up\n"); 
-                menuInfo.deleteCommandSelection--; 
-                if (menuInfo.deleteCommandSelection < 0) menuInfo.deleteCommandSelection++; 
-            }
-            if (IsKeyPressed(KEY_ENTER)){
-                printf("trigger enter\n"); 
-                (*events).deleteCommandFromEvent(menuInfo.mainScreenSelection, menuInfo.deleteCommandSelection);
-                menuInfo.exitOutOfDeleteMenu = true;  
-            }
-        } else {
-            //delete menu
-            if (IsKeyPressed(KEY_LEFT)){
-                printf("trigger left\n"); 
-                if (--menuInfo.deleteMenuSelection < 0) menuInfo.deleteMenuSelection = 1;
-            }
-            if (IsKeyPressed(KEY_RIGHT)){
-                printf("trigger right\n"); 
-                if (++menuInfo.deleteMenuSelection > 1) menuInfo.deleteMenuSelection = 0;
-            }
-            if (IsKeyPressed(KEY_ENTER)){
-                printf("trigger enter\n"); 
-                if (menuInfo.deleteMenuSelection == 0){
-                    (*events).deleteEvent(menuInfo.mainScreenSelection); 
-                    menuInfo.exitOutOfDeleteMenu = true; 
-                } else if (menuInfo.deleteMenuSelection == 1){
-                    menuInfo.deleteCommandMenu = true; 
-                }
-                
+        if (IsKeyPressed(KEY_N)){
+            printf("trigger n\n"); 
+            (*events).newEvent(); 
+        }
+        
+        //poll command list scroll
+        if (IsKeyPressed(KEY_C)){
+            if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
+                printf("trigger shift + c\n"); 
+                menuInfo.commandSelection -= 1; 
+                if (menuInfo.commandSelection < 0) menuInfo.commandSelection++; 
+            } else {
+                printf("trigger c\n"); 
+                menuInfo.commandSelection++; 
+                if (menuInfo.commandSelection >= (*events).glossary.size()) menuInfo.commandSelection--; 
             }
         }
-        //exit out of menu
-        if (menuInfo.exitOutOfDeleteMenu){
-            menuInfo.deleteMenuSelection = 0; 
-            menuInfo.deleteMenu = false; 
-            menuInfo.deleteCommandSelection = 0; 
-            menuInfo.deleteCommandMenu = false; 
-            menuInfo.eventMenu = true; 
-            menuInfo.exitOutOfDeleteMenu = false; 
+        //poll new command to event
+        if (IsKeyPressed(KEY_ONE) and ((*events).glossary.size() > menuInfo.commandSelection)){
+            printf("trigger 1\n");
+            menuInfo.highlightCommand = menuInfo.commandSelection; 
 
-            grayOutMainScreen = false; 
+            //new freq
+            if ((*events).isFreq[menuInfo.commandSelection]){
+                printf("freq change\n"); 
+                menuInfo.mainMenu = false; 
+                menuInfo.freqChangeMenu = true; 
+            }
         }
-    }
+        if (IsKeyPressed(KEY_TWO) and ((*events).glossary.size() > menuInfo.commandSelection + 1)){
+            printf("trigger 2\n");
+            menuInfo.highlightCommand = menuInfo.commandSelection + 1; 
+        }
+        if (IsKeyPressed(KEY_THREE) and ((*events).glossary.size() > menuInfo.commandSelection + 2)){
+            printf("trigger 3\n");
+            menuInfo.highlightCommand = menuInfo.commandSelection + 2;
+            std::cout << (*events).descriptor[menuInfo.commandSelection + 2] << '\n'; 
+        }
+
+    }   
 }
 
 void Screen::printMouseCoord(){
     DrawText(TextFormat("%d, %d", GetMouseX(), GetMouseY()), 900, 600, 20, BLACK); 
 }
 
+void Screen::grayScreen(){
+    DrawRectangle(0, 0, width, height, color.grayOutColor); 
+}
+
 void Screen::drawPianoRoll(int x, int y){
     std::string mappingLetter; 
 
-    int pianoY = y + 25; 
-
-    DrawTextEx(text.thickFont, "piano mappings", (Vector2){(float)x, (float)y}, 
-        text.titleFontSize, text.titleSpacing, color.accent); 
     //white keys
     for (int i = 0; i < 10; i++){
-        DrawRectangle(x + (i * piano.off), pianoY, piano.keyWidth, piano.whiteKeyHeight, color.bright); 
+        DrawRectangle(x + (i * piano.off), y, piano.keyWidth, piano.whiteKeyHeight, color.bright); 
         switch (i){
             case 1: 
                 mappingLetter = 'A'; 
@@ -185,14 +186,14 @@ void Screen::drawPianoRoll(int x, int y){
                 break; 
         }
         DrawTextEx(text.thickFont, mappingLetter.c_str(), 
-                (Vector2){(float)(x + (i * (piano.off)) + piano.qKeyWidth), (float)(pianoY + piano.hWHeight)}, 
+                (Vector2){(float)(x + (i * (piano.off)) + piano.qKeyWidth), (float)(y + piano.hWHeight)}, 
                 piano.whiteFontSize, 0, color.midTone); 
     }
     //black keys
     for (int i = 0; i < 10; i++){
         if ((i == 2) or (i == 6) or (i == 9)); 
         else{
-            DrawRectangle(x + (piano.hKeyWidth) + (i * piano.off), pianoY, 
+            DrawRectangle(x + (piano.hKeyWidth) + (i * piano.off), y, 
                 piano.keyWidth, piano.blackKeyHeight, color.dark); 
             
             switch(i){
@@ -222,7 +223,7 @@ void Screen::drawPianoRoll(int x, int y){
                     break; 
             }
             DrawTextEx(text.thickFont, mappingLetter.c_str(), 
-                (Vector2){(float)(x + (i * piano.off) + piano.qKeyWidth + piano.hKeyWidth), (float)(pianoY)}, 
+                (Vector2){(float)(x + (i * piano.off) + piano.qKeyWidth + piano.hKeyWidth), (float)(y)}, 
                 piano.blackFontSize, 0, color.midTone); 
         } 
     }
@@ -291,19 +292,15 @@ void Screen::drawEventInfo(int x, int y){
         text.titleFontSize, text.titleSpacing, color.accent); 
     
     DrawTextEx(text.bodyFont, "new event [n]", (Vector2){(float) (x), (float)(y + 20)}, 
-        text.bodyFontSize, text.bodySpacing, color.midTone); 
+        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
     
     DrawTextEx(text.bodyFont, "deploy event (first) [m]", 
         (Vector2){(float) (x + 125), (float)(y + 20)}, 
-        text.bodyFontSize, text.bodySpacing, color.midTone); 
-    
-    DrawTextEx(text.bodyFont, "add to event [a]", 
-        (Vector2){(float) (x + 335), (float)(y + 20)}, 
-        text.bodyFontSize, text.bodySpacing, color.midTone); 
+        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
 
     DrawTextEx(text.bodyFont, "delete [d]", 
-        (Vector2){(float) (x + 490), (float)(y + 20)}, 
-        text.bodyFontSize, text.bodySpacing, color.midTone); 
+        (Vector2){(float) (x + 335), (float)(y + 20)}, 
+        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
 
     int yIndex = 0; 
     for (int i = menuInfo.mainScreenSelection; i < menuInfo.mainScreenSelection + 3; i++){
@@ -316,7 +313,7 @@ void Screen::drawEventInfo(int x, int y){
                 DrawTextEx(text.bodyFont, TextFormat("->event %d", i), 
                     (Vector2){(float)(x + 5), (float)(y + 70 + (20 * (yIndex++)))}, 
                     text.bodyFontSize, text.bodySpacing, color.bright); 
-                }
+            }
         }
     }
     DrawRectangleLinesEx((Rectangle){(float)(x), (float)(y + 55), 90, 25}, 2, color.midTone); 
@@ -330,6 +327,38 @@ void Screen::drawEventInfo(int x, int y){
             text.bodySpacing, color.bright); 
         _index++; 
     }
+}
+
+void Screen::drawCommandOptions(int x, int y){
+    DrawTextEx(text.thickFont, "commands", (Vector2){(float)x, (float)y}, 
+        text.titleFontSize, text.titleSpacing, color.accent); 
+    DrawTextEx(text.thickFont, "scroll down events  [c]", (Vector2){(float)(x + 5), (float)(y + 25)},
+        text.bodyFontSize, text.titleSpacing, color.midToneDark); 
+    DrawTextEx(text.thickFont, "scroll up events    [cmd + c]", (Vector2){(float)(x + 5), (float)(y + 45)},
+        text.bodyFontSize, text.titleSpacing, color.midToneDark); 
+
+    int printIndex = 0; 
+    for (int i = menuInfo.commandSelection; i < menuInfo.commandSelection + 3; i++){
+        Color commandColor = color.midTone; 
+        Color shortcutColor = color.bright; 
+        if (menuInfo.highlightCommand != -1){
+            if (menuInfo.highlightCommand - menuInfo.commandSelection == i){
+                commandColor = (frameCount > 15) ? color.midTone : color.red; 
+                shortcutColor = (frameCount > 15) ? color.bright : color.red; 
+            } 
+        }
+        if (i < (*events).descriptor.size()){
+            DrawTextEx(text.thickFont, (*events).descriptor[i].c_str(), 
+                (Vector2){(float)(x + 10), (float)(y + 75 + (printIndex * 20))}, 
+                text.titleFontSize, text.bodySpacing, commandColor);
+                
+            DrawTextEx(text.bodyFont, TextFormat("[%d]", printIndex + 1), 
+                (Vector2){(float)(x + 200), (float)(y + 75 + (printIndex * 20))}, 
+                text.titleFontSize, text.bodySpacing, shortcutColor); 
+            printIndex++;  
+        }
+
+    } 
 }
 
 void Screen::drawDeleteMenu(int x, int y){
@@ -376,4 +405,172 @@ void Screen::drawDeleteMenu(int x, int y){
         DrawRectangleLinesEx((Rectangle){(float)(x + 1),(float)(y + 65), 400, 30}, 2, boxColor); 
     }
 
+}
+
+void Screen::pollDeleteMenu(){
+    if (menuInfo.deleteCommandMenu){
+        //delete a command
+        int _max = (*events).events[menuInfo.mainScreenSelection].commandDescriptor.size(); 
+        if (IsKeyPressed(KEY_DOWN)){
+            printf("tigger down\n"); 
+            menuInfo.deleteCommandSelection++; 
+            if (menuInfo.deleteCommandSelection >= _max) menuInfo.deleteCommandSelection--; 
+        }
+        if (IsKeyPressed(KEY_UP)){
+            printf("trigger up\n"); 
+            menuInfo.deleteCommandSelection--; 
+            if (menuInfo.deleteCommandSelection < 0) menuInfo.deleteCommandSelection++; 
+        }
+        if (IsKeyPressed(KEY_ENTER)){
+            printf("trigger enter\n"); 
+            (*events).deleteCommandFromEvent(menuInfo.mainScreenSelection, menuInfo.deleteCommandSelection);
+            menuInfo.exitOutOfDeleteMenu = true;  
+        }
+    } else {
+        //delete menu
+        if (IsKeyPressed(KEY_LEFT)){
+            printf("trigger left\n"); 
+            if (--menuInfo.deleteMenuSelection < 0) menuInfo.deleteMenuSelection = 1;
+        }
+        if (IsKeyPressed(KEY_RIGHT)){
+            printf("trigger right\n"); 
+            if (++menuInfo.deleteMenuSelection > 1) menuInfo.deleteMenuSelection = 0;
+        }
+        if (IsKeyPressed(KEY_ENTER)){
+            printf("trigger enter\n"); 
+            if (menuInfo.deleteMenuSelection == 0){
+                (*events).deleteEvent(menuInfo.mainScreenSelection); 
+                menuInfo.exitOutOfDeleteMenu = true; 
+            } else if (menuInfo.deleteMenuSelection == 1){
+                menuInfo.deleteCommandMenu = true; 
+            }
+            
+        }
+    }
+    //exit out of menu
+    if (menuInfo.exitOutOfDeleteMenu){
+        menuInfo.deleteMenuSelection = 0; 
+        menuInfo.deleteMenu = false; 
+        menuInfo.deleteCommandSelection = 0; 
+        menuInfo.deleteCommandMenu = false; 
+        menuInfo.mainMenu = true; 
+        menuInfo.exitOutOfDeleteMenu = false; 
+    }
+}
+
+void Screen::drawFreqChange(int x, int y){
+    //cover up event menu
+    DrawTextEx(text.thickFont, "freq change", (Vector2){(float)(x + 5), (float)(y + 5)}, 
+        text.titleFontSize, text.titleSpacing, color.accent); 
+    DrawTextEx(text.bodyFont, "[c] to cancel", (Vector2){(float)(x + 25), (float)(y + 25)}, 
+        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    DrawTextEx(text.bodyFont, "change octave [up/down]", 
+        (Vector2){(float)(x + 155), (float)(y + 10)}, text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    DrawTextEx(text.bodyFont, "change time [left/right]", 
+        (Vector2){(float)(x + 155), (float)(y + 25)}, text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    DrawTextEx(text.bodyFont, "change time incr [shift + left/shift + right]", 
+        (Vector2){(float)(x + 370), (float)(y + 25)}, text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    DrawTextEx(text.bodyFont, "change voice [shift + up/shift + down]", 
+        (Vector2){(float)(x + 370), (float)(y + 10)}, text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    
+    std::string note = ""; 
+    int octave = 0;
+    midiToName(piano.note, octave, note); 
+    DrawTextEx(text.bodyFont, TextFormat("change to: %s%d", note.c_str(), octave), 
+        (Vector2){(float)(x + 15), (float)(y + 55)}, text.titleFontSize, text.titleSpacing, color.bright); 
+    DrawTextEx(text.bodyFont, TextFormat("over %0.2f seconds", piano.time), 
+        (Vector2){(float)(x + 15), (float)(y + 75)}, text.titleFontSize, text.titleSpacing, color.bright); 
+    DrawTextEx(text.bodyFont, TextFormat("(increments of %0.2f)", piano.incr), 
+        (Vector2){(float)(x + 250), (float)(y + 79)}, text.bodyFontSize, text.bodySpacing, color.bright); 
+    DrawTextEx(text.bodyFont, TextFormat("on voice %d", piano.voice), 
+        (Vector2){(float)(x + 15), (float)(y + 92)}, text.titleFontSize, text.titleSpacing, color.bright); 
+}
+
+void Screen::pollFreqChange(){
+    if (IsKeyPressed(KEY_UP)){
+        if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
+            piano.voice++; 
+            if (piano.voice >= (*stream).info.numVoices){ piano.voice--; }
+        } else {
+            piano.note += 12; 
+            piano.octave++; 
+            if (piano.note > 108){
+                piano.note -= 12; 
+                piano.octave--; 
+            }
+        }
+    }
+    if (IsKeyPressed(KEY_DOWN)){
+        if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
+            piano.voice--; 
+            if (piano.voice < 0) piano.voice = 0; 
+        } else {
+            piano.note -= 12; 
+            piano.octave--; 
+            if (piano.note < 24){
+                piano.note += 12; 
+                piano.octave++; 
+            }
+        }
+    }
+    
+    if (IsKeyPressed(KEY_A)){ piano.note = 24 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_W)){ piano.note = 25 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_S)){ piano.note = 26 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_E)){ piano.note = 27 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_D)){ piano.note = 28 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_F)){ piano.note = 29 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_T)){ piano.note = 30 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_G)){ piano.note = 31 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_Y)){ piano.note = 32 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_H)){ piano.note = 33 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_U)){ piano.note = 34 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_J)){ piano.note = 35 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_K)){ piano.note = 36 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_O)){ piano.note = 37 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_L)){ piano.note = 38 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_P)){ piano.note = 39 + (12 * (piano.octave - 1)); }
+    else if (IsKeyPressed(KEY_SEMICOLON)){ piano.note = 40 + (12 * (piano.octave - 1)); }
+
+    if (IsKeyPressed(KEY_RIGHT)) {
+        if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
+            piano.incr += 0.25; 
+        } else {
+            piano.time += piano.incr; 
+        }
+    }
+    if (IsKeyPressed(KEY_LEFT)) {
+        if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
+            piano.incr -= 0.25; 
+            if (piano.incr < 0.25){ piano.incr = 0.25; }
+        } else {
+            piano.time -= piano.incr; 
+            if (piano.time < 0) {piano.time = 0; }
+        }
+    }
+
+    if (IsKeyPressed(KEY_C)){
+        menuInfo.mainMenu = true; 
+        menuInfo.freqChangeMenu = false; 
+        piano.voice = 0; 
+        menuInfo.highlightCommand = -1; 
+        piano.note = 60;
+        piano.octave = 4;
+        piano.time = 0; 
+        piano.incr = 0.5; 
+    }
+
+    if (IsKeyPressed(KEY_ENTER)){
+        (*events).addToEvent(menuInfo.mainScreenSelection, "sineOsc_freq" ,
+            midiToFreq((*stream).info.notes[piano.voice]), midiToFreq(piano.note), piano.time, piano.voice); 
+        
+        menuInfo.mainMenu = true; 
+        menuInfo.freqChangeMenu = false; 
+        piano.voice = 0; 
+        menuInfo.highlightCommand = -1; 
+        piano.note = 60;
+        piano.octave = 4;
+        piano.time = 0; 
+        piano.incr = 0.5; 
+    }
 }
