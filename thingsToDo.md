@@ -19,4 +19,7 @@ the only envelope determined now is linear, this shouldn't be the only option so
 the program crashes if i start with no pre loaded events 
 
 ### need to find a way to save events 
-cus doing it live is incredibly hard, idk if this synth is worth it lmao 
+cus doing it live is incredibly hard.
+
+### live mode? 
+a simplified version of the ui where one could move the voices with a lot more ease but less control
