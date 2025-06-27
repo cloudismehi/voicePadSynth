@@ -16,7 +16,9 @@ i need more voice engines but that's last on the priority list.
 the only envelope determined now is linear, this shouldn't be the only option so i must code another one. i need to implement volume envelopes - not just for all voices but for each individual voice. 
 
 ### troubleshooting
-the program crashes if i start with no pre loaded events 
+
+### implement more synth things 
+more oscillator types, filters, lfos, so on and so forth
 
 ### need to find a way to save events 
 cus doing it live is incredibly hard.
