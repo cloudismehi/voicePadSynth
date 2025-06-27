@@ -25,7 +25,7 @@ class Envelope{
   void resetEnvelope(){ index = 0; }
   
   float nextValue();
-}; 
+};
 
 class Stream{
     public:
@@ -71,6 +71,7 @@ class Event {
     std::unordered_map<std::string, int> glossary; 
     std::unordered_map<int, std::string> descriptor; 
     std::unordered_map<int, bool> isFreq; 
+    std::unordered_map<int, std::string> id; 
     std::vector<std::function<void(float _newVal, int _voice)> > possibleEvents; 
     
     struct Commands{
@@ -104,15 +105,16 @@ class Event {
 
     template<class Obj>
     void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), 
-            std::string id, std::string _descriptor, bool _isFreq = false){
+            std::string _id, std::string _descriptor, bool _isFreq = false){
         
         possibleEvents.push_back([&obj, setter](float _newVal, int _voice){
             (obj.*setter)(_newVal, _voice); 
         }); 
 
-        glossary[id] = possibleEvents.size() - 1; 
+        glossary[_id] = possibleEvents.size() - 1; 
         descriptor[possibleEvents.size() - 1] = _descriptor; 
         isFreq[possibleEvents.size() - 1] = _isFreq; 
+        id[possibleEvents.size() - 1] = _id; 
     } 
 };
 

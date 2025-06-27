@@ -49,41 +49,11 @@ int main(){
 		std::cout << "error with starting audio!\n"; 
 	}
 
-	events.openEvent(events.newEvent());
-	events.addToEvent("sineOsc_freq", midiToFreq(60), midiToFreq(66), 1, 0); 
-	events.addToEvent("sineOsc_freq", midiToFreq(64), midiToFreq(62), 1, 1); 
-	events.addToEvent("sineOsc_amp", 1.f, 0.5f, 1, 0); 
-	events.closeEvent(); 
-
-	// events.openEvent(events.newEvent());
-	// events.addToEvent("sineOsc_freq", midiToFreq(66), midiToFreq(60), 1, 0); 
-	// events.closeEvent(); 
-
-	// events.openEvent(events.newEvent());
-	// events.addToEvent("sineOsc_freq", midiToFreq(60), midiToFreq(62), 1, 0); 
-	// events.addToEvent("sineOsc_freq", midiToFreq(64), midiToFreq(65), 1, 1); 
-	// events.addToEvent("sineOsc_freq", midiToFreq(67), midiToFreq(69), 1, 2); 
-	// events.closeEvent(); 
-
-	// events.openEvent(events.newEvent());
-	// events.addToEvent("sineOsc_freq", midiToFreq(71), midiToFreq(72), 1, 3); 
-	// events.closeEvent(); 
-
-	// events.openEvent(events.newEvent());
-	// events.addToEvent("sineOsc_freq", midiToFreq(72), midiToFreq(71), 1, 3); 
-	// events.addToEvent("sineOsc_freq", midiToFreq(69), midiToFreq(67), 1, 2); 
-	// events.closeEvent(); 
-
-	// events.openEvent(events.newEvent());
-	// events.addToEvent("sineOsc_freq", midiToFreq(65), midiToFreq(64), 1, 1); 
-	// events.addToEvent("sineOsc_freq", midiToFreq(62), midiToFreq(60), 1, 0); 
-	// events.addToEvent("sineOsc_amp", 0.f, 1.f, 1, -1); 
-	// events.closeEvent(); 
-
 	InitWindow(screenWidth, screenHeight, "tito"); 
 	SetTargetFPS(30); 
 
-	// system("clear"); `
+	// system("clear"); 
+	
 	while (!WindowShouldClose()){
 		BeginDrawing(); 
 
@@ -95,6 +65,8 @@ int main(){
 	audioInstance.deinit();
 	
 	CloseWindow(); 
+
+	std::cout << "program ended!\n"; 
 
 	return 0; 
 }

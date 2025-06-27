@@ -13,6 +13,7 @@ class Screen{
     Audio *audioInstance; 
     Event *events; 
     const int *numVoices; 
+    
 
     int frameCount = 0; 
     
@@ -56,7 +57,7 @@ class Screen{
         int bodySpacing = 2; 
 
         Font bodyFont; 
-        Font thickFont; 
+        Font thickFont;
     }; 
     TextSettings text; 
 
@@ -94,14 +95,25 @@ class Screen{
         bool deleteCommandMenu = false; 
         bool exitOutOfDeleteMenu = false; 
         bool freqChangeMenu = false; 
+        bool arbChange = false; 
     }; 
     MenuInfo menuInfo; 
+
+    struct Change{
+        int voice = 0; 
+        float newVal = 0; 
+        float incr = 0.5; 
+        float time = 0; 
+        float timeIncr = 0.5; 
+    }; 
+    Change change; 
     
     private:
     
     void pollEvents(); 
     void printMouseCoord(); 
     void grayScreen(); 
+    void emptyOutQueue(); 
 
     //main menu elements 
     void drawPianoRoll(int x, int y); 
@@ -116,4 +128,8 @@ class Screen{
     //freq change elements
     void drawFreqChange(int x, int y);
     void pollFreqChange(); 
+
+    //arb change 
+    void drawArbCommand(int x, int y); 
+    void pollArbCommand(); 
 }; 
