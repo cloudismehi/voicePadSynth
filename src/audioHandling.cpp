@@ -181,6 +181,30 @@ void Event::deleteCommandFromEvent(int _eventIndex, int _commandIndex){
     }
 }
 
+bool Event::saveEvents(std::string _filename){
+    std::fstream file; 
+    file.open("assets/events/" + _filename, std::ios::out); 
+    if (!file) {
+        std::cout << "error making file\n"; 
+        return false; 
+    }
+
+    for (int i = 0; i < events.size(); i++){
+        file << "new\n"; 
+        for (int q = 0; q < events[i].queue.size(); q++){
+            file << events[i].commandNames[q] << '/' << events[i].curVal[q] << '/';
+            file << std::get<0>(events[i].queueData[q]) << '/' << std::get<2>(events[i].queueData[q]); 
+            file << '/' << std::get<1>(events[i].queueData[q]) << '\n'; 
+        }
+    }
+
+    return true; 
+}
+
+bool Event::loadEvents(std::string _filename){
+    return true; 
+}
+
 /* ******************************************************************************** */
 
 bool Audio::init(int sampleRate, int framesPerBuffer, Stream &_stream)

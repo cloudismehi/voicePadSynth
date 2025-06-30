@@ -1,13 +1,14 @@
 #pragma once 
 
 #include <iostream>
-#include <math.h>
 #include <memory>
 #include <functional>
 #include <unordered_map>
 #include <vector> 
 #include <string> 
 #include <utility>
+#include <sstream>
+#include <fstream>
 
 #include "portaudio.h"
 #include "raylib.h"
@@ -101,6 +102,12 @@ class Event {
 
     void deleteEvent(int _eventIndex); 
     void deleteCommandFromEvent(int _eventIndex, int _commandIndex); 
+
+    /*
+    order: id/cur/new/time/voice
+    */
+    bool saveEvents(std::string _filename);
+    bool loadEvents(std::string _filname); 
     
 
     template<class Obj>

@@ -121,7 +121,11 @@ void Screen::pollEvents(){
             printf("trigger n\n"); 
             (*events).newEvent(); 
         }
-        
+        if (IsKeyPressed(KEY_S)){
+            printf("trigger s\n"); 
+            (*events).saveEvents("(No One Knows Me) Like the Piano"); 
+        }
+
         //poll command list scroll
         if (IsKeyPressed(KEY_C)){
             if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){

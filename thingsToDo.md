@@ -1,10 +1,5 @@
 # Things to do
 
-**The whole purpose of this file is to list all the things that need implementing**
-
-### design the ui / program loop and interactability 
-frequency change coded, the amp change isn't. 
-
 ### events system
 the basics of the events system is basically written and implemented, i need to determine a way to keep multiple events from targeting the same voice at the same time - as of right now the behavior is undetermined when it comes to this. 
 
@@ -13,15 +8,18 @@ i want to find a way to get multiple voices to react to the same functions - lik
 i need more voice engines but that's last on the priority list. 
 
 ### the envelopes
-the only envelope determined now is linear, this shouldn't be the only option so i must code another one. i need to implement volume envelopes - not just for all voices but for each individual voice. 
-
-### troubleshooting
+the only envelope determined now is linear, this shouldn't be the only option so i must code another one. i need to implement volume envelopes 
 
 ### implement more synth things 
 more oscillator types, filters, lfos, so on and so forth
 
 ### need to find a way to save events 
-cus doing it live is incredibly hard.
+there's a function that saves events (shortcut s), but there is no way to load them in. i also have to figure out a way to input the name of the file to save. 
 
 ### live mode? 
 a simplified version of the ui where one could move the voices with a lot more ease but less control
+
+## the refactor (ugh)
+- rewrite a lot of the events system because as it stands it's very messy and a little dumb - that has to change lmao 
+- trigger events in a way that envelopes from the curren value on to the next, as of right now that is handled very choppily and it doesn't fully work with the frequency change because it is storing the curent value at the time of storing the command. 
+- simplify note changes - it takes too many clicks no one could ever use this live. 
