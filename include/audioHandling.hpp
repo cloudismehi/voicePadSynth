@@ -68,24 +68,32 @@ class Stream{
 class Event {
     public: 
     Stream* stream; 
-    int sampleRate = 44100; 
+    
+    int openedEvent = -1; 
+
+    //converts ids to an index where data is stored 
     std::unordered_map<std::string, int> glossary; 
-    std::unordered_map<int, std::string> descriptor; 
-    std::unordered_map<int, bool> isFreq; 
-    std::unordered_map<int, std::string> id; 
-    std::vector<std::function<void(float _newVal, int _voice)> > possibleEvents; 
+    struct PossibleCommand{
+        std::function<void(float _newVal, int _voice)> function; 
+        std::string id; 
+        std::string descriptor; 
+        bool isFreq; 
+    }; 
     
     struct Commands{
-        std::vector< std::function<void(float _newVal, int _voice)> > queue; 
-        std::vector< std::tuple<float, int, float> > queueData; // newVal, voice, time
-        std::vector< std::string > commandNames; 
-        std::vector< std::string > commandDescriptor; 
-        std::vector< bool > isFreq; 
-        std::vector< float > curVal; //for enveloped events
+        std::vector< std::function<void(float _newVal, int _voice)> > function; 
+        
+        std::vector< float          > newVal, time, curVal; 
+        std::vector< int            > voice; 
+        std::vector< bool           > isFreq; 
+        
+        std::vector< std::string    > commandNames; 
+        std::vector< std::string    > commandDescriptor; 
     }; 
-
+    
+    std::vector<PossibleCommand> possibleCommands; 
     std::vector<Commands> events; 
-    int openedEvent = -1; 
+
 
     Event(Stream &_stream); 
     //create new event
@@ -108,20 +116,25 @@ class Event {
     */
     bool saveEvents(std::string _filename);
     bool loadEvents(std::string _filname); 
+
+    std::string formatDescriptor(std::string _id, float _newVal, int _voice); 
     
 
     template<class Obj>
     void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), 
             std::string _id, std::string _descriptor, bool _isFreq = false){
         
-        possibleEvents.push_back([&obj, setter](float _newVal, int _voice){
-            (obj.*setter)(_newVal, _voice); 
-        }); 
+        glossary[_id] = possibleCommands.size(); 
 
-        glossary[_id] = possibleEvents.size() - 1; 
-        descriptor[possibleEvents.size() - 1] = _descriptor; 
-        isFreq[possibleEvents.size() - 1] = _isFreq; 
-        id[possibleEvents.size() - 1] = _id; 
+        PossibleCommand command; 
+        command.function = [&obj, setter](float _newVal, int _voice){
+            (obj.*setter)(_newVal, _voice); 
+        };
+        command.descriptor = _descriptor; 
+        command.isFreq = _isFreq; 
+        command.id = _id; 
+
+        possibleCommands.push_back(command); 
     } 
 };
 

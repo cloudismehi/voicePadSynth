@@ -144,7 +144,7 @@ void Screen::pollEvents(){
             menuInfo.highlightCommand = menuInfo.commandSelection; 
 
             //new freq
-            if ((*events).isFreq[menuInfo.commandSelection]){
+            if ((*events).possibleCommands[menuInfo.commandSelection].isFreq){
                 printf("freq change\n"); 
                 menuInfo.mainMenu = false; 
                 menuInfo.freqChangeMenu = true; 
@@ -161,7 +161,7 @@ void Screen::pollEvents(){
             menuInfo.highlightCommand = menuInfo.commandSelection + 1; 
 
             //new freq
-            if ((*events).isFreq[menuInfo.commandSelection + 1]){
+            if ((*events).possibleCommands[menuInfo.commandSelection + 1].isFreq){
                 printf("freq change\n"); 
                 menuInfo.mainMenu = false; 
                 menuInfo.freqChangeMenu = true; 
@@ -178,7 +178,7 @@ void Screen::pollEvents(){
             menuInfo.highlightCommand = menuInfo.commandSelection + 2;
             //new freq
             
-            if ((*events).isFreq[menuInfo.commandSelection + 2]){
+            if ((*events).possibleCommands[menuInfo.commandSelection + 2].isFreq){
                 printf("freq change\n"); 
                 menuInfo.mainMenu = false; 
                 menuInfo.freqChangeMenu = true; 
@@ -418,8 +418,8 @@ void Screen::drawCommandOptions(int x, int y){
                 shortcutColor = (frameCount > 15) ? color.bright : color.red; 
             } 
         }
-        if (i < (*events).descriptor.size()){
-            DrawTextEx(text.thickFont, (*events).descriptor[i].c_str(), 
+        if (i < (*events).possibleCommands.size()){
+            DrawTextEx(text.thickFont, (*events).possibleCommands[i].descriptor.c_str(), 
                 (Vector2){(float)(x + 10), (float)(y + 75 + (printIndex * 20))}, 
                 text.titleFontSize, text.bodySpacing, commandColor);
                 
@@ -711,8 +711,8 @@ void Screen::pollArbCommand(){
     }
     if (IsKeyPressed(KEY_ENTER)){
         try{
-            std::cout << (*events).id.at(menuInfo.highlightCommand) << '\n'; 
-            (*events).addToEvent(menuInfo.mainScreenSelection, (*events).id.at(menuInfo.highlightCommand), 
+            std::cout << (*events).possibleCommands[menuInfo.highlightCommand].id << '\n'; 
+            (*events).addToEvent(menuInfo.mainScreenSelection, (*events).possibleCommands[menuInfo.highlightCommand].id, 
                 (*stream).info.amps[change.voice], change.newVal, change.time, change.voice); 
         } catch (...){
             std::cout << "event index not found\n" << menuInfo.highlightCommand << std::endl; 

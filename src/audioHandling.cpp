@@ -56,7 +56,7 @@ void Event::listEvents(){
     int eventIndex = 0;
         for (auto event : events){
           std::cout << "event " << eventIndex << ":\n";
-          for (int i = 0; i < event.queue.size(); i++){
+          for (int i = 0; i < event.function.size(); i++){
             std::cout << " " << event.commandDescriptor[i] << '\n'; 
           }
           eventIndex++;
@@ -67,29 +67,18 @@ void Event::listEvents(){
 void Event::addToEvent(int _eventIndex, std::string _id, float _curVal, 
     float _newVal, float _time, int _voice)
 {
-    events[_eventIndex].queue.push_back(possibleEvents[glossary.at(_id)]); 
-    events[_eventIndex].queueData.push_back(std::make_tuple(_newVal, _voice, _time));
+    auto *command = &possibleCommands[glossary.at(_id)]; 
+    
+    events[_eventIndex].function.push_back((*command).function); 
+    events[_eventIndex].newVal.push_back(_newVal); 
+    events[_eventIndex].time.push_back(_time); 
+    events[_eventIndex].voice.push_back(_voice); 
     events[_eventIndex].commandNames.push_back(_id); 
     
-    std::string descriptorFormated = ""; 
-    if (isFreq.at(glossary.at(_id))){
-        int _oct = 0; 
-        std::string _name = ""; 
-        midiToName(freqToMidi(_newVal), _oct, _name); 
-        
-        descriptorFormated += TextFormat("%s to %s%d on voice %d",
-            descriptor.at(glossary.at(_id)).c_str(), 
-            _name.c_str(), _oct, _voice);    
-    } else if (_voice == -1){
-        descriptorFormated += TextFormat("global %s to %0.2f", descriptor.at(glossary.at(_id)).c_str(), _newVal); 
-    } else {
-        descriptorFormated += TextFormat("%s to %0.2f on voice %d",
-            descriptor.at(glossary.at(_id)).c_str(), 
-            _newVal, _voice);
-    }
+    std::string descriptorFormated = formatDescriptor(_id, _newVal, _voice); 
 
     events[_eventIndex].commandDescriptor.push_back(descriptorFormated); 
-    events[_eventIndex].isFreq.push_back(isFreq.at(glossary.at(_id))); 
+    events[_eventIndex].isFreq.push_back((*command).isFreq); 
     events[_eventIndex].curVal.push_back(_curVal); 
 }
 
@@ -98,47 +87,40 @@ void Event::addToEvent(std::string _id, float _curVal, float _newVal, float _tim
         std::cout << "no event opened\n"; 
         return; 
     }
-    events[openedEvent].queue.push_back(possibleEvents[glossary.at(_id)]); 
-    events[openedEvent].queueData.push_back(std::make_tuple(_newVal, _voice, _time));
-    events[openedEvent].commandNames.push_back(_id); 
     
-    std::string descriptorFormated = ""; 
-    if (isFreq.at(glossary.at(_id))){
-        int _oct = 0; 
-        std::string _name = ""; 
-        midiToName(freqToMidi(_newVal), _oct, _name); 
-        
-        descriptorFormated += TextFormat("%s to %s%d on voice %d",
-            descriptor.at(glossary.at(_id)).c_str(), 
-            _name.c_str(), _oct, _voice);    
-    } else if (_voice == -1){
-        descriptorFormated += TextFormat("global %s to %0.2f", descriptor.at(glossary.at(_id)).c_str(), _newVal); 
-    } else {
-        descriptorFormated += TextFormat("%s to %0.2f on voice %d",
-            descriptor.at(glossary.at(_id)).c_str(), 
-            _newVal, _voice);
-    }
+    auto *command = &possibleCommands[glossary.at(_id)]; 
+    
+    events[openedEvent].function.push_back((*command).function); 
+    events[openedEvent].isFreq.push_back((*command).isFreq); 
+
+    events[openedEvent].newVal.push_back(_newVal); 
+    events[openedEvent].time.push_back(_time); 
+    events[openedEvent].voice.push_back(_voice); 
+    events[openedEvent].commandNames.push_back(_id); 
+    events[openedEvent].curVal.push_back(_curVal); 
+    
+    std::string descriptorFormated = formatDescriptor(_id, _newVal, _voice); 
     
     events[openedEvent].commandDescriptor.push_back(descriptorFormated); 
-    events[openedEvent].isFreq.push_back(isFreq.at(glossary.at(_id))); 
-    events[openedEvent].curVal.push_back(_curVal); 
 }
 
 void Event::deployEvent(int _eventIndex){
-    int commandNumber = events[_eventIndex].queue.size(); 
+    int commandNumber = events[_eventIndex].function.size(); 
     for (int i = 0; i < commandNumber; i++){
 
         Stream::ModifierFunc func; 
-        func.func = events[_eventIndex].queue.back(); 
-        func.newVal = std::get<0>(events[_eventIndex].queueData.back()); 
-        func.voice = std::get<1>(events[_eventIndex].queueData.back()); 
-        func.changeDur = std::get<2>(events[_eventIndex].queueData.back()); 
+        func.func = events[_eventIndex].function.back(); 
+        func.newVal = events[_eventIndex].newVal.back(); 
+        func.voice = events[_eventIndex].voice.back(); 
+        func.changeDur = events[_eventIndex].time.back(); 
         func.curVal = events[_eventIndex].curVal.back(); 
         
         (*stream).modFuncs.push_back(func); 
         
-        events[_eventIndex].queue.pop_back(); 
-        events[_eventIndex].queueData.pop_back(); 
+        events[_eventIndex].function.pop_back(); 
+        events[_eventIndex].newVal.pop_back(); 
+        events[_eventIndex].voice.pop_back(); 
+        events[_eventIndex].time.pop_back(); 
         events[_eventIndex].commandNames.pop_back();
         events[_eventIndex].curVal.pop_back(); 
     }
@@ -146,20 +128,22 @@ void Event::deployEvent(int _eventIndex){
 }
 
 void Event::deployEvent(){
-    int commandNumber = events.front().queue.size(); 
+    int commandNumber = events.front().function.size(); 
     for (int i = 0; i < commandNumber; i++){
         Stream::ModifierFunc func; 
-        func.func = events.front().queue.front(); 
-        func.newVal = std::get<0>(events.front().queueData.front()); 
-        func.voice = std::get<1>(events.front().queueData.front()); 
-        func.changeDur = std::get<2>(events.front().queueData.front()); 
+        func.func = events.front().function.front(); 
+        func.newVal = events.front().newVal.front(); 
+        func.voice = events.front().voice.front(); 
+        func.changeDur = events.front().time.front(); 
         func.curVal = events.front().curVal.front(); 
         
         (*stream).modFuncs.push_back(func); 
 
         events.front().curVal.erase(events.front().curVal.begin()); 
-        events.front().queue.erase(events.front().queue.begin()); 
-        events.front().queueData.erase(events.front().queueData.begin()); 
+        events.front().function.erase(events.front().function.begin()); 
+        events.front().newVal.erase(events.front().newVal.begin()); 
+        events.front().voice.erase(events.front().voice.begin()); 
+        events.front().time.erase(events.front().time.begin()); 
         events.front().commandNames.erase(events.front().commandNames.begin()); 
     }
     events.erase(events.begin()); 
@@ -170,10 +154,12 @@ void Event::deleteEvent(int _eventIndex){
 }
 
 void Event::deleteCommandFromEvent(int _eventIndex, int _commandIndex){
-    if (events[_eventIndex].queue.size() == 1) events.erase(events.begin() + _eventIndex); 
+    if (events[_eventIndex].function.size() == 1) events.erase(events.begin() + _eventIndex); 
     else {
-        events[_eventIndex].queue.erase(events[_eventIndex].queue.begin() + _commandIndex); 
-        events[_eventIndex].queueData.erase(events[_eventIndex].queueData.begin() + _commandIndex); 
+        events[_eventIndex].function.erase(events[_eventIndex].function.begin() + _commandIndex); 
+        events[_eventIndex].newVal.erase(events[_eventIndex].newVal.begin() + _commandIndex); 
+        events[_eventIndex].voice.erase(events[_eventIndex].voice.begin() + _commandIndex); 
+        events[_eventIndex].time.erase(events[_eventIndex].time.begin() + _commandIndex); 
         events[_eventIndex].commandNames.erase(events[_eventIndex].commandNames.begin() + _commandIndex); 
         events[_eventIndex].commandDescriptor.erase(events[_eventIndex].commandDescriptor.begin() + _commandIndex); 
         events[_eventIndex].isFreq.erase(events[_eventIndex].isFreq.begin() + _commandIndex); 
@@ -191,10 +177,9 @@ bool Event::saveEvents(std::string _filename){
 
     for (int i = 0; i < events.size(); i++){
         file << "new\n"; 
-        for (int q = 0; q < events[i].queue.size(); q++){
+        for (int q = 0; q < events[i].function.size(); q++){
             file << events[i].commandNames[q] << '/' << events[i].curVal[q] << '/';
-            file << std::get<0>(events[i].queueData[q]) << '/' << std::get<2>(events[i].queueData[q]); 
-            file << '/' << std::get<1>(events[i].queueData[q]) << '\n'; 
+            file << events[i].newVal[q] << '/' << events[i].time[q] << '/' << events[i].voice[q] << '\n'; 
         }
     }
 
@@ -203,6 +188,28 @@ bool Event::saveEvents(std::string _filename){
 
 bool Event::loadEvents(std::string _filename){
     return true; 
+}
+
+std::string Event::formatDescriptor(std::string _id, float _newVal, int _voice){
+    std::string name = ""; 
+    
+    auto* command = &possibleCommands[glossary.at(_id)]; 
+
+    if ((*command).isFreq){
+        int _oct = 0; 
+        std::string _name = ""; 
+        midiToName(freqToMidi(_newVal), _oct, _name); 
+        
+        name += TextFormat("%s to %s%d on voice %d", (*command).descriptor.c_str(), 
+            _name.c_str(), _oct, _voice);    
+    } else if (_voice == -1){
+        name += TextFormat("global %s to %0.2f", (*command).descriptor.c_str(), _newVal); 
+    } else {
+        name += TextFormat("%s to %0.2f on voice %d", (*command).descriptor.c_str(), 
+            _newVal, _voice);
+    }
+
+    return name; 
 }
 
 /* ******************************************************************************** */

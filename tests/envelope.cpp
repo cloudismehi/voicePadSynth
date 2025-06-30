@@ -41,7 +41,7 @@ class Event{
 public:
   int sampleRate = 44100; 
   std::unordered_map<std::string, int> glossary; 
-  std::vector<std::function<void(float _newVal, int _voice)> > possibleEvents;
+  std::vector<std::function<void(float _newVal, int _voice)> > possibleFunctions;
 
   struct IndividualEvents{
     std::vector<std::function<void(float _newVal, int _voice)> > queue; 
@@ -69,8 +69,8 @@ public:
 
   template<class Obj>
     void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), std::string id){
-      possibleEvents.push_back([&obj, setter](float _newVal, int _voice){ (obj.*setter)(_newVal, _voice); }); 
-      glossary[id] = possibleEvents.size() - 1;  
+      possibleFunctions.push_back([&obj, setter](float _newVal, int _voice){ (obj.*setter)(_newVal, _voice); }); 
+      glossary[id] = possibleFunctions.size() - 1;  
     }
 
 }; 
@@ -170,7 +170,7 @@ void Event::listEvents(){
 }
 
 void Event::addToEvent(int _eventIndex, std::string _id, float _newVal, int _voice){
-  events[_eventIndex].queue.push_back(possibleEvents[glossary.at(_id)]); 
+  events[_eventIndex].queue.push_back(possibleFunctions[glossary.at(_id)]); 
   events[_eventIndex].queueData.push_back(std::make_pair(_newVal, _voice));
   events[_eventIndex].commandNames.push_back(_id); 
 
@@ -181,7 +181,7 @@ void Event::addToEvent(std::string _id, float _newVal, int _voice){
     std::cout << "no event opened\n"; 
     return; 
   }
-  events[openedEvent].queue.push_back(possibleEvents[glossary.at(_id)]); 
+  events[openedEvent].queue.push_back(possibleFunctions[glossary.at(_id)]); 
   events[openedEvent].queueData.push_back(std::make_pair(_newVal, _voice));
   events[openedEvent].commandNames.push_back(_id); 
 }
@@ -191,7 +191,7 @@ void Event::addToEvent(std::string _id, float _newVal, int _voice, float _curVal
     std::cout << "no event opened\n"; 
     return; 
   }
-  events[openedEvent].queue.push_back(possibleEvents[glossary.at(_id)]); 
+  events[openedEvent].queue.push_back(possibleFunctions[glossary.at(_id)]); 
   events[openedEvent].queueData.push_back(std::make_pair(_newVal, _voice));
   events[openedEvent].commandNames.push_back(_id); 
   events[openedEvent].slopes.push_back((_newVal - _curValue)/(_time * sampleRate)); 
