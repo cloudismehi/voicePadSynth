@@ -46,7 +46,7 @@ int main(){
 	audioStream.addFunction(sineOsc, &SineOscillator::genValue); 
 
 	events.openEvent(events.newEvent()); 
-	events.addToEvent("sineOsc_freq", midiToFreq(60), midiToFreq(62), 1, 0); 
+	events.addToEvent("sineOsc_freq", audioStream.info.freqs[0], midiToFreq(62), 1, 0); 
 	events.closeEvent(); 
 
 	if(!audioInstance.startAudio()){

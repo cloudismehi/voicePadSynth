@@ -26,6 +26,7 @@ Stream::Stream(const int _numVoices){
     info.numVoices = _numVoices; 
     info.amps = new float[_numVoices]; 
     info.notes = new int[_numVoices]; 
+    info.freqs = new float[_numVoices]; 
     info.bucket = new float[_numVoices]; 
     info.bucket2 = new float[_numVoices]; 
 
@@ -37,6 +38,7 @@ Stream::Stream(const int _numVoices){
 Stream::~Stream(){
     delete[] info.amps; 
     delete[] info.notes; 
+    delete[] info.freqs; 
     delete[] info.bucket; 
     delete[] info.bucket2; 
 }
@@ -64,7 +66,7 @@ void Event::listEvents(){
     std::cout << '\n';
 }
 
-void Event::addToEvent(int _eventIndex, std::string _id, float _curVal, 
+void Event::addToEvent(int _eventIndex, std::string _id, float &_curVal, 
     float _newVal, float _time, int _voice)
 {
     auto *command = &possibleCommands[glossary.at(_id)]; 
@@ -79,7 +81,7 @@ void Event::addToEvent(int _eventIndex, std::string _id, float _curVal,
 
     events[_eventIndex].commandDescriptor.push_back(descriptorFormated); 
     events[_eventIndex].isFreq.push_back((*command).isFreq); 
-    events[_eventIndex].curVal.push_back(_curVal); 
+    events[_eventIndex].curVal.push_back(&_curVal); 
 }
 
 void Event::addToEvent(std::string _id, float _curVal, float _newVal, float _time, int _voice){
@@ -88,20 +90,7 @@ void Event::addToEvent(std::string _id, float _curVal, float _newVal, float _tim
         return; 
     }
     
-    auto *command = &possibleCommands[glossary.at(_id)]; 
-    
-    events[openedEvent].function.push_back((*command).function); 
-    events[openedEvent].isFreq.push_back((*command).isFreq); 
-
-    events[openedEvent].newVal.push_back(_newVal); 
-    events[openedEvent].time.push_back(_time); 
-    events[openedEvent].voice.push_back(_voice); 
-    events[openedEvent].commandNames.push_back(_id); 
-    events[openedEvent].curVal.push_back(_curVal); 
-    
-    std::string descriptorFormated = formatDescriptor(_id, _newVal, _voice); 
-    
-    events[openedEvent].commandDescriptor.push_back(descriptorFormated); 
+    addToEvent(openedEvent, _id, _curVal, _newVal, _time, _voice); 
 }
 
 void Event::deployEvent(int _eventIndex){
@@ -113,7 +102,7 @@ void Event::deployEvent(int _eventIndex){
         func.newVal = events[_eventIndex].newVal.back(); 
         func.voice = events[_eventIndex].voice.back(); 
         func.changeDur = events[_eventIndex].time.back(); 
-        func.curVal = events[_eventIndex].curVal.back(); 
+        func.curVal = *(events[_eventIndex].curVal.back()); 
         
         (*stream).modFuncs.push_back(func); 
         
@@ -135,7 +124,7 @@ void Event::deployEvent(){
         func.newVal = events.front().newVal.front(); 
         func.voice = events.front().voice.front(); 
         func.changeDur = events.front().time.front(); 
-        func.curVal = events.front().curVal.front(); 
+        func.curVal = (*events.front().curVal.front()); 
         
         (*stream).modFuncs.push_back(func); 
 
@@ -178,7 +167,7 @@ bool Event::saveEvents(std::string _filename){
     for (int i = 0; i < events.size(); i++){
         file << "new\n"; 
         for (int q = 0; q < events[i].function.size(); q++){
-            file << events[i].commandNames[q] << '/' << events[i].curVal[q] << '/';
+            file << events[i].commandNames[q] << '/' << *(events[i].curVal[q]) << '/';
             file << events[i].newVal[q] << '/' << events[i].time[q] << '/' << events[i].voice[q] << '\n'; 
         }
     }

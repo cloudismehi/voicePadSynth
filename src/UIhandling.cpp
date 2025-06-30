@@ -646,7 +646,7 @@ void Screen::pollFreqChange(){
     if (IsKeyPressed(KEY_ENTER)){
         std::cout << "trigger enter - on event " << menuInfo.mainScreenSelection << '\n'; 
         (*events).addToEvent(menuInfo.mainScreenSelection, "sineOsc_freq",
-            midiToFreq((*stream).info.notes[piano.voice]), midiToFreq(piano.note), piano.time, piano.voice); 
+            (*stream).info.freqs[piano.voice], midiToFreq(piano.note), piano.time, piano.voice); 
         
         menuInfo.mainMenu = true; 
         menuInfo.freqChangeMenu = false; 

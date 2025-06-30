@@ -62,6 +62,7 @@ void SineOscillator::setFreq(float _freq, int _voice){
     else {
         frequency[_voice] = _freq; 
         (*stream).info.notes[_voice] = freqToMidi(_freq); 
+        (*stream).info.freqs[_voice] = _freq; 
     }
     updateOffsets(); 
 }
@@ -72,6 +73,8 @@ void SineOscillator::setFreqMidi(float _note, int _voice){
     }
     else {
         frequency[_voice] = midiToFreq(_note); 
+        (*stream).info.notes[_voice] = _note; 
+        (*stream).info.freqs[_voice] = midiToFreq(_note); 
     }
     updateOffsets();   
 }
