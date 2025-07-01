@@ -96,6 +96,7 @@ class Screen{
         bool exitOutOfDeleteMenu = false; 
         bool freqChangeMenu = false; 
         bool arbChange = false; 
+        bool saveEvent = false; 
     }; 
     MenuInfo menuInfo; 
 
@@ -105,6 +106,9 @@ class Screen{
         float incr = 0.5; 
         float time = 0; 
         float timeIncr = 0.5; 
+
+        std::string filename = ""; 
+        int maxFileTitleLength = 20; 
     }; 
     Change change; 
     
@@ -132,4 +136,8 @@ class Screen{
     //arb change 
     void drawArbCommand(int x, int y); 
     void pollArbCommand(); 
+
+    //save file
+    void drawSaveFile(int x, int y); 
+    void pollSaveFile(); 
 }; 

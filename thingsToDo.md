@@ -23,3 +23,6 @@
 ### live mode? 
 - (!) a simplified version of the ui where one could move the voices with a lot more ease but less control
 
+### troubleshooting
+- saving events doesn't work for either saving the first event or saving manually from main
+- need to go back to storing addresses not values 

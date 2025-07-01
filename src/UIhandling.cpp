@@ -6,7 +6,6 @@ Screen::Screen(Stream &_stream, Audio &_audioInstance, Event &_events, const int
     events = &_events;
     numVoices = &_numVoices; 
     
-    loadFonts(); 
     assignVoiceColors(); 
 }   
 
@@ -47,14 +46,21 @@ void Screen::update(){
         drawArbCommand(10, 420); 
         pollArbCommand(); 
     }
+    else if (menuInfo.saveEvent){
+        grayScreen(); 
+        drawSaveFile((width / 2) - 250, (height / 2) - 100); 
+        pollSaveFile(); 
+    }
     else {
         pollEvents();     
     }
 }
 
 void Screen::loadFonts(){
-    text.bodyFont = LoadFont("assets/fonts/upheavtt.ttf"); 
+    text.bodyFont = LoadFont("assets/fonts/alpha_beta.png"); 
     text.thickFont = LoadFont("assets/fonts/upheavtt.ttf"); 
+    if (IsFontValid(text.thickFont)) std::cout << "[FONT]  thick font loaded\n"; 
+    if (IsFontValid(text.bodyFont)) std::cout << "[FONT]  body font loaded\n"; 
 }
 
 void Screen::assignVoiceColors(){
@@ -123,7 +129,8 @@ void Screen::pollEvents(){
         }
         if (IsKeyPressed(KEY_S)){
             printf("trigger s\n"); 
-            (*events).saveEvents("(No One Knows Me) Like the Piano"); 
+            menuInfo.saveEvent = true; 
+            menuInfo.mainMenu = false; 
         }
 
         //poll command list scroll
@@ -303,7 +310,7 @@ void Screen::drawVoiceInfo(int x, int y){
 
     //note names
     for (int i = 0 ; i < (*stream).info.numVoices; i++){
-        DrawTextEx(text.thickFont, TextFormat("Voice %d", i), 
+        DrawTextEx(text.bodyFont, TextFormat("Voice %d", i), 
             (Vector2){(float)(x + 10), (float)(y + 25 + (i * 25))}, 
             text.titleFontSize, text.bodySpacing, color.midToneDark);
 
@@ -342,11 +349,11 @@ void Screen::drawVoiceInfo(int x, int y){
         DrawRectangle((float)(x + 135), (float)(y + 35 + (i * 25)), 10, 4, circleColor); 
     }
     
-    DrawTextEx(text.thickFont, "total amp", 
+    DrawTextEx(text.bodyFont, "total amp", 
         (Vector2){(float)(x), (float)(y + 145)}, text.titleFontSize, 
         text.titleSpacing, color.midTone); 
     
-    DrawTextEx(text.thickFont, TextFormat("%0.2f", (*stream).info.totalAmp), 
+    DrawTextEx(text.bodyFont, TextFormat("%0.2f", (*stream).info.totalAmp), 
         (Vector2){(float)(x + 120), (float)(y + 145)}, text.titleFontSize, 
         text.titleSpacing, color.midToneDark); 
 }
@@ -441,14 +448,14 @@ void Screen::drawDeleteMenu(int x, int y){
 
     if (!menuInfo.deleteCommandMenu){
         DrawTextEx(text.thickFont, "what do you want to delete?", 
-            (Vector2){(float)(x + 33), (float)(y + 5)}, text.titleFontSize * 1.5, 
+            (Vector2){(float)(x + 33), (float)(y + 5)}, text.titleFontSize, 
             text.titleSpacing, titleColor); 
         
-        DrawTextEx(text.thickFont, "the event", (Vector2){(float)(x + 20), (float)(y + 70)},
-            text.titleFontSize * 1.2, text.titleSpacing, color.dark); 
+        DrawTextEx(text.bodyFont, "the event", (Vector2){(float)(x + 20), (float)(y + 70)},
+            text.titleFontSize, text.titleSpacing, color.dark); 
         
-        DrawTextEx(text.thickFont, "a command in the event", (Vector2){(float)(x + 170), (float)(y + 70)},
-            text.titleFontSize * 1.2, text.titleSpacing, color.dark); 
+        DrawTextEx(text.bodyFont, "a command in the event", (Vector2){(float)(x + 170), (float)(y + 70)},
+            text.titleFontSize, text.titleSpacing, color.dark); 
         
         if (menuInfo.deleteMenuSelection == 0){
             DrawRectangleLinesEx((Rectangle){(float)(x + 15), (float)(y + 65), 135, 30}, 
@@ -459,7 +466,7 @@ void Screen::drawDeleteMenu(int x, int y){
         }
     } else {
         DrawTextEx(text.thickFont, "what command?", 
-            (Vector2){(float)(x + 130), (float)(y + 5)}, text.titleFontSize * 1.5, 
+            (Vector2){(float)(x + 130), (float)(y + 5)}, text.titleFontSize, 
             text.titleSpacing, titleColor); 
         
         int printIndex = 0; //for orienting the commands
@@ -776,5 +783,47 @@ void Screen::pollArbCommand(){
     }
     if (IsKeyPressed(KEY_T)){
         change.voice = -1; 
+    }
+}
+
+void Screen::drawSaveFile(int x, int y){
+    DrawRectangle(x, y, 500, 150, color.midTone); 
+    Color titleColor = (frameCount > 15) ? color.dark : color.red; 
+
+    DrawTextEx(text.thickFont, "save events", {(float)(x + 5), (float)(y + 5)}, 
+        text.titleFontSize, text.titleSpacing, titleColor); 
+    DrawTextEx(text.thickFont, "what name for the file?", {(float)(x + 5), (float)(y + 30)}, 
+        text.titleFontSize * 0.8, text.titleSpacing, color.dark); 
+
+    DrawTextEx(text.bodyFont, change.filename.c_str(), {(float)(x + 5), (float)(y + 80)}, 
+        text.titleFontSize, text.bodySpacing, color.dark); 
+    Color cursorColor = (frameCount < 15) ? color.dark : color.midTone; 
+    DrawTextEx(text.bodyFont, "_", 
+        {x + 5 + MeasureTextEx(text.bodyFont, change.filename.c_str(), text.titleFontSize, text.bodySpacing).x, (float)(y + 80)}, 
+        text.titleFontSize, text.bodySpacing, cursorColor); 
+}
+
+void Screen::pollSaveFile(){
+    int key = GetKeyPressed(); 
+    while (key > 0){
+        if ((key >= 39) and (key <= 96)){
+            if (change.filename.size() < change.maxFileTitleLength){
+                change.filename.push_back(std::tolower((char)key)); 
+            }
+        }
+        else if (key == KEY_SPACE) {
+            change.filename.push_back(' ');
+        }
+        else if (key == KEY_BACKSPACE) {
+            change.filename.pop_back();
+        }
+        if (key == KEY_ENTER){
+            menuInfo.saveEvent = false; 
+            menuInfo.mainMenu = true; 
+            (*events).saveEvents(change.filename); 
+
+            change.filename = ""; 
+        }
+        key =  GetKeyPressed(); 
     }
 }
