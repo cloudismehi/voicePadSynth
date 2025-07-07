@@ -3,8 +3,7 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/Users/fernandosanchez/development/third-libs/audio/portaudio/include"
+                "${workspaceFolder}/**"
             ],
             "defines": [],
             "cStandard": "c17",

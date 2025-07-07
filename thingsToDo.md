@@ -17,12 +17,17 @@
 ### implement more synth things 
 - (!) more oscillator types, filters, lfos, so on and so forth
 
-### need to find a way to save events 
-- there's a function that saves events (shortcut s), but there is no way to load them in. i also have to figure out a way to input the name of the file to save. 
-
 ### live mode? 
 - (!) a simplified version of the ui where one could move the voices with a lot more ease but less control
 
+### global tempo and clock
+- i want to implement a global click that we could sync our event triggering with. 
+
 ### troubleshooting
-- saving events doesn't work for either saving the first event or saving manually from main
-- need to go back to storing addresses not values 
+- saving events doesn't work for either saving the first event or saving manually from main (kinda solved?)
+
+## refactor
+- the whole UI menu system and stuff may or may not be too complicated for its own sake. i feel like it can be rewritten as each menu function calling its polling function in some internal while loop that returns whenever the option is selected - may reduce redundancies and maybe make the code more flexible. will take a bit to implement though. 
+
+## functionality
+- i want to make a "play mode" in the synth, in this mode it runs through the events and deletes them as they get triggered - the switch can happen automatically or manually - after the "playback" is done, we can exit play mode and see all the events as we had them - this will be the main method for modifying and creating events, the edit mode. play mode will also allow you to add and modify events on the fly but will probably not be the main way to do so. 

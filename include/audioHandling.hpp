@@ -9,9 +9,12 @@
 #include <utility>
 #include <sstream>
 #include <fstream>
+#include <filesystem>
 
 #include "portaudio.h"
 #include "raylib.h"
+
+namespace fs = std::filesystem; 
 
 class Envelope{
   public: 
@@ -95,6 +98,8 @@ class Event {
     
     std::vector<PossibleCommand> possibleCommands; 
     std::vector<Commands> events; 
+    std::string savedEventsPath = "assets/events/"; 
+    std::vector<std::string> savedEventFilenames; 
 
 
     Event(Stream &_stream); 
@@ -105,7 +110,7 @@ class Event {
     void closeEvent(){ openedEvent = -1; }
 
     void addToEvent(int _eventIndex, std::string _id, float &_curVal, float _newVal, float _time, int _voice);
-    void addToEvent(std::string _id, float _curVal, float _newVal, float _time, int _voice); 
+    void addToEvent(std::string _id, float &_curVal, float _newVal, float _time, int _voice); 
     
     void deployEvent(int _eventIndex);
     void deployEvent();
@@ -118,6 +123,7 @@ class Event {
     */
     bool saveEvents(std::string _filename);
     bool loadEvents(std::string _filname); 
+    bool getFilenames(); 
 
     std::string formatDescriptor(std::string _id, float _newVal, int _voice); 
     

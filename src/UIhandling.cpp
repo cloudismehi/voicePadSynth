@@ -50,6 +50,11 @@ void Screen::update(){
         grayScreen(); 
         drawSaveFile((width / 2) - 250, (height / 2) - 100); 
         pollSaveFile(); 
+    } 
+    else if (menuInfo.loadFile){
+        grayScreen(); 
+        drawLoadFile((width / 2) - 250, (height / 2) - 100); 
+        pollLoadFile(); 
     }
     else {
         pollEvents();     
@@ -74,25 +79,31 @@ void Screen::assignVoiceColors(){
 
 void Screen::pollEvents(){
     //main screen 
+    //new event
+    if (IsKeyPressed(KEY_N)){
+        printf("trigger n\n"); 
+        (*events).newEvent(); 
+    }
+    if (IsKeyPressed(KEY_L)){
+        printf("trigger l\n"); 
+        menuInfo.loadFile = true; 
+        menuInfo.mainMenu = false;
+        (*events).getFilenames();  
+    }
+    //poll command list scroll
+    if (IsKeyPressed(KEY_C)){
+        if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
+            printf("trigger shift + c\n"); 
+            menuInfo.commandSelection -= 1; 
+            if (menuInfo.commandSelection < 0) menuInfo.commandSelection++; 
+        } else {
+            printf("trigger c\n"); 
+            menuInfo.commandSelection++; 
+            if (menuInfo.commandSelection >= (*events).glossary.size()) menuInfo.commandSelection--; 
+        }
+    }
     if ((*events).events.size() == 0) {
         menuInfo.mainMenu = false; 
-        //new event
-        if (IsKeyPressed(KEY_N)){
-            printf("trigger n\n"); 
-            (*events).newEvent(); 
-        }
-        //poll command list scroll
-        if (IsKeyPressed(KEY_C)){
-            if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
-                printf("trigger shift + c\n"); 
-                menuInfo.commandSelection -= 1; 
-                if (menuInfo.commandSelection < 0) menuInfo.commandSelection++; 
-            } else {
-                printf("trigger c\n"); 
-                menuInfo.commandSelection++; 
-                if (menuInfo.commandSelection >= (*events).glossary.size()) menuInfo.commandSelection--; 
-            }
-        }
     }
     else menuInfo.mainMenu = true; 
 
@@ -123,28 +134,13 @@ void Screen::pollEvents(){
                 (*events).deployEvent(); 
             else printf("no events\n"); 
         }	
-        if (IsKeyPressed(KEY_N)){
-            printf("trigger n\n"); 
-            (*events).newEvent(); 
-        }
         if (IsKeyPressed(KEY_S)){
             printf("trigger s\n"); 
             menuInfo.saveEvent = true; 
             menuInfo.mainMenu = false; 
         }
+        
 
-        //poll command list scroll
-        if (IsKeyPressed(KEY_C)){
-            if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
-                printf("trigger shift + c\n"); 
-                menuInfo.commandSelection -= 1; 
-                if (menuInfo.commandSelection < 0) menuInfo.commandSelection++; 
-            } else {
-                printf("trigger c\n"); 
-                menuInfo.commandSelection++; 
-                if (menuInfo.commandSelection >= (*events).glossary.size()) menuInfo.commandSelection--; 
-            }
-        }
         //poll new command to event
         if ((IsKeyPressed(KEY_ONE) or IsKeyPressed(KEY_KP_1)) and ((*events).glossary.size() > menuInfo.commandSelection)){
             printf("trigger 1\n");
@@ -373,6 +369,14 @@ void Screen::drawEventInfo(int x, int y){
     DrawTextEx(text.bodyFont, "delete [d]", 
         (Vector2){(float) (x + 335), (float)(y + 20)}, 
         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    
+    DrawTextEx(text.bodyFont, "save [s]", 
+        (Vector2){(float) (x + 430), (float)(y + 20)}, 
+        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    
+    DrawTextEx(text.bodyFont, "load [l]", 
+        (Vector2){(float) (x + 510), (float)(y + 20)}, 
+        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
 
     if ((*events).events.size() == 0){
         DrawRectangle(x + 130, y + 50, 350, 100, color.midToneDark); 
@@ -487,6 +491,7 @@ void Screen::drawDeleteMenu(int x, int y){
 
 void Screen::pollDeleteMenu(){
     emptyOutQueue(); 
+    if (IsKeyPressed(KEY_C)){ menuInfo.exitOutOfDeleteMenu = true; }
     if (menuInfo.deleteCommandMenu){
         //delete a command
         int _max = (*events).events[menuInfo.mainScreenSelection].commandDescriptor.size(); 
@@ -820,10 +825,50 @@ void Screen::pollSaveFile(){
         if (key == KEY_ENTER){
             menuInfo.saveEvent = false; 
             menuInfo.mainMenu = true; 
-            (*events).saveEvents(change.filename); 
+            (*events).saveEvents(change.filename + ".dat"); 
 
             change.filename = ""; 
         }
         key =  GetKeyPressed(); 
     }
 }
+
+void Screen::drawLoadFile(int x, int y){
+    DrawRectangle(x, y, 500, 150, color.midTone); 
+    Color titleColor = (frameCount > 15) ? color.dark : color.red; 
+    DrawTextEx(text.thickFont, "load events", {(float)(x + 5), (float)(y + 5)}, 
+        text.titleFontSize, text.titleSpacing, titleColor); 
+    
+    int printIndex = 0; 
+    for (int i = menuInfo.loadFileSelection; i < menuInfo.loadFileSelection + 2; i++){
+        if (i < (*events).savedEventFilenames.size()){
+            DrawTextEx(text.bodyFont, (*events).savedEventFilenames[i].c_str(), 
+                (Vector2){(float)(x + 20), (float)(y + 50 + (printIndex * 30))}, 
+                text.bodyFontSize * 1.5, text.bodySpacing, color.dark); 
+            
+            printIndex++; 
+        }
+    }
+}
+
+void Screen::pollLoadFile(){
+    if (IsKeyPressed(KEY_DOWN)){
+        if (++menuInfo.loadFileSelection >= (*events).savedEventFilenames.size()){
+            menuInfo.loadFileSelection--; 
+        }
+    }
+    if (IsKeyPressed(KEY_UP)){
+        if (--menuInfo.loadFileSelection < 0) menuInfo.loadFileSelection = 0; 
+    }
+    if (IsKeyPressed(KEY_C)){
+        menuInfo.mainMenu = true; 
+        menuInfo.loadFile = false;
+        menuInfo.loadFileSelection = 0; 
+    }
+    if (IsKeyPressed(KEY_ENTER)){
+        (*events).loadEvents((*events).savedEventFilenames[menuInfo.loadFileSelection]);
+        menuInfo.mainMenu = true; 
+        menuInfo.loadFile = false;
+        menuInfo.loadFileSelection = 0; 
+    }
+}  

@@ -4,19 +4,19 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "g++ -std=c++20 -l raylib raylibInput.cpp -o raylibInput",
+            "command": "g++ -std=c++20 -l raylib saveFile.cpp -o saveFile",
             "problemMatcher": "$gcc"
         },
         {
             "label": "run",
             "type": "shell",
-            "command": "./raylibInput",
+            "command": "./saveFile",
             "problemMatcher": "$gcc"
         },
         {
             "label": "build n run",
             "type": "shell",
-            "command": "g++ -std=c++20 -l raylib raylibInput.cpp -o raylibInput; ./raylibInput",
+            "command": "g++ -std=c++20 -l raylib saveFile.cpp -o saveFile; ./saveFile",
             "problemMatcher": "$gcc"
         }
     ]

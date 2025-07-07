@@ -84,7 +84,7 @@ void Event::addToEvent(int _eventIndex, std::string _id, float &_curVal,
     events[_eventIndex].curVal.push_back(&_curVal); 
 }
 
-void Event::addToEvent(std::string _id, float _curVal, float _newVal, float _time, int _voice){
+void Event::addToEvent(std::string _id, float &_curVal, float _newVal, float _time, int _voice){
     if (openedEvent == -1) {
         std::cout << "no event opened\n"; 
         return; 
@@ -125,6 +125,7 @@ void Event::deployEvent(){
         func.voice = events.front().voice.front(); 
         func.changeDur = events.front().time.front(); 
         func.curVal = (*events.front().curVal.front()); 
+        std::cout << (*events.front().curVal.front()) << '\n';
         
         (*stream).modFuncs.push_back(func); 
 
@@ -158,7 +159,7 @@ void Event::deleteCommandFromEvent(int _eventIndex, int _commandIndex){
 
 bool Event::saveEvents(std::string _filename){
     std::fstream file; 
-    file.open("assets/events/" + _filename, std::ios::out); 
+    file.open(savedEventsPath + _filename, std::ios::out); 
     if (!file) {
         std::cout << "error making file\n"; 
         return false; 
@@ -167,15 +168,91 @@ bool Event::saveEvents(std::string _filename){
     for (int i = 0; i < events.size(); i++){
         file << "new\n"; 
         for (int q = 0; q < events[i].function.size(); q++){
-            file << events[i].commandNames[q] << '/' << *(events[i].curVal[q]) << '/';
+            file << events[i].commandNames[q] << '/' << events[i].curVal[q] << '/';
             file << events[i].newVal[q] << '/' << events[i].time[q] << '/' << events[i].voice[q] << '\n'; 
         }
     }
 
+    file.close(); 
     return true; 
 }
 
 bool Event::loadEvents(std::string _filename){
+    std::fstream file; 
+    file.open(savedEventsPath + _filename); 
+    if (!file){
+        std::cout << "error opening file\n"; 
+        return false; 
+    }
+
+    std::string inputString; 
+    int _voice; 
+    float _curVal, _newVal, _time; 
+    std::string _id; 
+    while(std::getline(file, inputString)){
+        int numElementsSet = 0; 
+        if (inputString == "new"){
+            openEvent(newEvent()); 
+        } else {
+            std::stringstream stream(inputString); 
+            std::string element; 
+            int _index = 0; 
+            while (getline(stream, element, '/')){
+                switch(_index){
+                    case 0: 
+                        //id
+                        _id = element; 
+                        numElementsSet++;
+                        break; 
+                    case 1: 
+                        //current value
+                        _curVal = std::stof(element); 
+                        numElementsSet++;
+                        break; 
+                    case 2: 
+                        //new value
+                        _newVal = std::stof(element); 
+                        numElementsSet++;
+                        break; 
+                    case 3: 
+                        //time
+                        _time = std::stof(element); 
+                        numElementsSet++;
+                        break; 
+                    case 4: 
+                        //voice
+                        _voice = std::stoi(element); 
+                        numElementsSet++;
+                        break; 
+                }
+                _index++; 
+            }
+        }
+        if (numElementsSet == 5) { addToEvent(_id, _curVal, _newVal, _time, _voice); } 
+    }
+    closeEvent(); 
+    file.close(); 
+    return true; 
+}
+
+bool Event::getFilenames(){
+    savedEventFilenames.clear(); 
+    try{
+        for (const auto& entry : fs::directory_iterator(savedEventsPath)){
+            std::string name = entry.path().filename().string(); 
+            if (fs::is_regular_file(entry.status())){
+                if (name.substr(name.length() - 4, 4) == ".dat"){
+                    savedEventFilenames.push_back(name); 
+                }
+            }
+        }
+    } catch (const fs::filesystem_error &e){
+        std::cout << "error reading files: " << e.what() << std::endl; 
+        return false; 
+    }
+    for (auto name : savedEventFilenames){
+        std::cout << name << '\n'; 
+    }
     return true; 
 }
 
@@ -252,6 +329,7 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
 
     auto modifierFunc = audioStream->modFuncs; 
 
+    //trigger instant events in the queue 
     for (int i = 0; i < modifierFunc.size(); ++i){
         if (modifierFunc[i].changeDur == 0){
             modifierFunc[i].func(modifierFunc[i].newVal, modifierFunc[i].voice); 
@@ -265,6 +343,7 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
         
         for (int p = 0; p < modifierFunc.size(); ++p){
             if (modifierFunc[p].changeDur != 0){
+                //set envelope for new events
                 if (!modifierFunc[p].envelope.set){
                     (*audioStream).modFuncs[p].envelope.init(modifierFunc[p].curVal, 
                         modifierFunc[p].newVal, modifierFunc[p].changeDur); 

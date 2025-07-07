@@ -2,23 +2,34 @@
 #include <fstream> 
 #include <string> 
 #include <sstream> 
+#include <filesystem>
+#include <vector>
+
+namespace fs = std::filesystem; 
 
 class EventInfo{
     public: 
 
     std::string id; 
+    std::vector<std::string> filenames; 
+
     float cur, newVal, time; 
     int voice; 
 
     bool loadData(std::string _filename); 
     bool storeData(std::string _filename); 
     void printReport(); 
+    bool getFilenames(); 
 }; 
 
 int main(){
     EventInfo event; 
 
-    if (!event.loadData("testData.dat")) return 1; 
+    // if (!event.loadData("testData.dat")) return 1; 
+    event.getFilenames(); 
+    for (auto e : event.filenames){
+        std::cout << e << '\n'; 
+    }
 
     return 0; 
 }
@@ -100,4 +111,22 @@ bool EventInfo::storeData(std::string _filename){
 
 void EventInfo::printReport(){
     printf("id: %s\nold val: %0.2f\nnew val: %0.2f\ntime: %0.2f\nvoice %d\n\n", id.c_str(), cur, newVal, time, voice); 
+}
+
+bool EventInfo::getFilenames(){
+    try {
+        for (const auto& entry : fs::directory_iterator(".")){
+            std::string name = entry.path().filename().string(); 
+            if (fs::is_regular_file(entry.status())){
+                if (name.substr(name.length() - 4, 4) == ".dat"){
+                    filenames.push_back(entry.path().filename().string()); 
+                }
+            }
+        }
+    } catch (const fs::filesystem_error& e){
+        std::cerr << "filesystem error: " << e.what() << std::endl; 
+        return false; 
+    }
+    printf("got all available filenames!\n"); 
+    return true; 
 }

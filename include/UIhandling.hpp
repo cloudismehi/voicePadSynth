@@ -13,7 +13,6 @@ class Screen{
     Audio *audioInstance; 
     Event *events; 
     const int *numVoices; 
-    
 
     int frameCount = 0; 
     
@@ -88,6 +87,7 @@ class Screen{
         int deleteMenuSelection = 0; 
         int deleteCommandSelection = 0; 
         int commandSelection = 0; 
+        int loadFileSelection = 0; 
         int highlightCommand = -1; 
 
         bool mainMenu = true; 
@@ -97,6 +97,7 @@ class Screen{
         bool freqChangeMenu = false; 
         bool arbChange = false; 
         bool saveEvent = false; 
+        bool loadFile = false; 
     }; 
     MenuInfo menuInfo; 
 
@@ -140,4 +141,8 @@ class Screen{
     //save file
     void drawSaveFile(int x, int y); 
     void pollSaveFile(); 
+
+    //load file
+    void drawLoadFile(int x, int y); 
+    void pollLoadFile(); 
 }; 

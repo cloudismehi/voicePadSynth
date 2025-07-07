@@ -49,6 +49,8 @@ int main(){
 	events.addToEvent("sineOsc_freq", audioStream.info.freqs[0], midiToFreq(62), 1, 0); 
 	events.closeEvent(); 
 
+	std::cout << audioStream.info.freqs[0] << '\n'; 
+
 	if(!audioInstance.startAudio()){
 		std::cout << "error with starting audio!\n"; 
 	}
