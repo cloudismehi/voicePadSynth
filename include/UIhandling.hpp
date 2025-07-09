@@ -12,20 +12,18 @@ class Screen{
     Stream *stream; 
     Audio *audioInstance; 
     Event *events; 
-    const int *numVoices; 
+    int *numVoices; 
 
     int frameCount = 0; 
     
     public: 
 
-    Screen(Stream &_stream, Audio &_audioInstance, Event &_events, const int &_numVoices); 
+    Screen(Stream &_stream, Audio &_audioInstance, Event &_events, int &_numVoices); 
     void update(); 
 
     void setDim(int _width, int _height) { width = _width; height = _height; }
     void loadFonts();
     void assignVoiceColors();  
-    
-    bool grayOutMainScreen = false; 
     
     struct Colors{
         Color dark = (Color){27, 32, 33, 255};              //eerie black
@@ -74,11 +72,13 @@ class Screen{
         int whiteFontSize = 20; 
         int blackFontSize = 15; 
 
-        int note = 60; 
+        int note = -1; 
         int octave = 4; 
-        float time = 0; 
-        float incr = 0.25; 
-        int voice = 0; 
+
+        void resetPiano(){
+            note = -1; 
+            octave = 4;  
+        }
     }; 
     PianoSettings piano; 
 
@@ -86,58 +86,60 @@ class Screen{
         int mainScreenSelection = 0; 
         int deleteMenuSelection = 0; 
         int deleteCommandSelection = 0; 
-        int commandSelection = 0; 
         int loadFileSelection = 0; 
-        int highlightCommand = -1; 
+        int changeScreenSelection = 0; 
 
         bool mainMenu = true; 
         bool deleteMenu = false; 
         bool deleteCommandMenu = false; 
         bool exitOutOfDeleteMenu = false; 
-        bool freqChangeMenu = false; 
-        bool arbChange = false; 
         bool saveEvent = false; 
         bool loadFile = false; 
+        bool changeScreen = false; 
+        bool globalChange = false; 
     }; 
     MenuInfo menuInfo; 
 
     struct Change{
         int voice = 0; 
-        float newVal = 0; 
-        float incr = 0.5; 
+        float newAmp = -1; 
         float time = 0; 
-        float timeIncr = 0.5; 
+        float incr = 0.1; 
+        float timeIncr = 0.1; 
+        float largeTimeIncr = 1; 
 
         std::string filename = ""; 
         int maxFileTitleLength = 20; 
+
+        void resetChange(){
+            voice = 0; 
+            newAmp = -1; 
+            time = 0; 
+            incr = 0.1; 
+            timeIncr = 0.1; 
+        }
     }; 
     Change change; 
     
     private:
     
-    void pollEvents(); 
     void printMouseCoord(); 
     void grayScreen(); 
     void emptyOutQueue(); 
-
+    
     //main menu elements 
+    void drawMainWindow(); 
+    void pollMainMenu(); 
+    void pollChange(); 
     void drawPianoRoll(int x, int y); 
+    bool pollPianoRoll(); 
     void drawVoiceInfo(int x, int y); 
-    void drawEventInfo(int x, int y); 
-    void drawCommandOptions(int x, int y);
+    void drawEventInfo(int x, int y);
     
     //delete menu optionts
     void drawDeleteMenu(int x, int y); 
     void pollDeleteMenu(); 
-
-    //freq change elements
-    void drawFreqChange(int x, int y);
-    void pollFreqChange(); 
-
-    //arb change 
-    void drawArbCommand(int x, int y); 
-    void pollArbCommand(); 
-
+    
     //save file
     void drawSaveFile(int x, int y); 
     void pollSaveFile(); 
@@ -145,4 +147,12 @@ class Screen{
     //load file
     void drawLoadFile(int x, int y); 
     void pollLoadFile(); 
+
+    //change screen
+    void drawChangeScreen(int x, int y); 
+    void pollChangeScreen(); 
+    
+    //global change screen
+    void drawGlobalChangeScreen(int x, int y); 
+    void pollGlobalChangeScreen(); 
 }; 

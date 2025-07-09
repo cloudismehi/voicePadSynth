@@ -82,6 +82,7 @@ class Event {
         std::string id; 
         std::string descriptor; 
         bool isFreq; 
+        bool isGlobal; 
     }; 
     
     struct Commands{
@@ -91,6 +92,7 @@ class Event {
         std::vector< float*         > curVal; 
         std::vector< int            > voice; 
         std::vector< bool           > isFreq; 
+        std::vector< bool           > isGlobal; 
         
         std::vector< std::string    > commandNames; 
         std::vector< std::string    > commandDescriptor; 
@@ -130,7 +132,7 @@ class Event {
 
     template<class Obj>
     void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), 
-            std::string _id, std::string _descriptor, bool _isFreq = false){
+            std::string _id, std::string _descriptor, bool _isFreq = false, bool _isGlobal = false){
         
         glossary[_id] = possibleCommands.size(); 
 
@@ -141,6 +143,7 @@ class Event {
         command.descriptor = _descriptor; 
         command.isFreq = _isFreq; 
         command.id = _id; 
+        command.isGlobal = _isGlobal; 
 
         possibleCommands.push_back(command); 
     } 

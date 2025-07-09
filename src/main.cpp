@@ -10,7 +10,7 @@
 #include "projectSettings.hpp"
 #include "UIhandling.hpp"
 
-const int numVoices = 4; 
+int numVoices = 3; 
 
 int main(){
 	Pa_Initialize(); 	
@@ -31,12 +31,7 @@ int main(){
 		std::cout << "error! audio stream init check failed\n";
 		return 1; 
 	}
-	 
-	audioStream.info.notes[0] = 60;  
-	audioStream.info.notes[1] = 64;  
-	audioStream.info.notes[2] = 67; 
-	audioStream.info.notes[3] = 71; 
-
+	
 	audioStream.info.totalAmp = 1.f; 
 	sineOsc.initSynth(); 
 	
@@ -44,10 +39,6 @@ int main(){
 	events.addPossibleEvent(sineOsc, &SineOscillator::setAmp, "sineOsc_amp", "amp change"); 
 
 	audioStream.addFunction(sineOsc, &SineOscillator::genValue); 
-
-	events.openEvent(events.newEvent()); 
-	events.addToEvent("sineOsc_freq", audioStream.info.freqs[0], midiToFreq(62), 1, 0); 
-	events.closeEvent(); 
 
 	std::cout << audioStream.info.freqs[0] << '\n'; 
 

@@ -81,6 +81,7 @@ void Event::addToEvent(int _eventIndex, std::string _id, float &_curVal,
 
     events[_eventIndex].commandDescriptor.push_back(descriptorFormated); 
     events[_eventIndex].isFreq.push_back((*command).isFreq); 
+    events[_eventIndex].isGlobal.push_back((*command).isGlobal); 
     events[_eventIndex].curVal.push_back(&_curVal); 
 }
 
@@ -112,6 +113,8 @@ void Event::deployEvent(int _eventIndex){
         events[_eventIndex].time.pop_back(); 
         events[_eventIndex].commandNames.pop_back();
         events[_eventIndex].curVal.pop_back(); 
+        events[_eventIndex].isGlobal.pop_back(); 
+        events[_eventIndex].isFreq.pop_back(); 
     }
     events.erase(events.begin() + _eventIndex); 
 }
@@ -135,6 +138,8 @@ void Event::deployEvent(){
         events.front().voice.erase(events.front().voice.begin()); 
         events.front().time.erase(events.front().time.begin()); 
         events.front().commandNames.erase(events.front().commandNames.begin()); 
+        events.front().isGlobal.erase(events.front().isGlobal.begin()); 
+        events.front().isFreq.erase(events.front().isFreq.begin()); 
     }
     events.erase(events.begin()); 
 }
@@ -154,6 +159,7 @@ void Event::deleteCommandFromEvent(int _eventIndex, int _commandIndex){
         events[_eventIndex].commandDescriptor.erase(events[_eventIndex].commandDescriptor.begin() + _commandIndex); 
         events[_eventIndex].isFreq.erase(events[_eventIndex].isFreq.begin() + _commandIndex); 
         events[_eventIndex].curVal.erase(events[_eventIndex].curVal.begin() + _commandIndex); 
+        events[_eventIndex].isGlobal.erase(events[_eventIndex].isGlobal.begin() + _commandIndex); 
     }
 }
 
