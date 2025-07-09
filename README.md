@@ -24,8 +24,3 @@ it'll be modifiable and adaptible, but the options to customize it are not going
 
 ### _dependencies_
 **raylib** will handle the visuals, user input, and all UI. **Raudio** will handle the audio output (and further audio settings). **PortMidi** could be used to handle all midi note input (and maybe output in the future). 
-
-### suggestion: live mode 
-as it stands right now, the synth is too bloaty to play live - and i inted to add more and more things that will in theory make it more so. so a simplified version might be welcome - a live version.
-press the voice you want to change, press the key u want it to be, press a volume for it, and then enter to trigger that event right away - this might make the synth more palatable for beginners and live performers
-
