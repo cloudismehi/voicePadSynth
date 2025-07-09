@@ -2,6 +2,7 @@
 
 ### UI
 - (!) **need to add UI adaptability to different voices**
+- support for more events that aren't frequency or amplitude - possibly through a sub-menu or something like that 
 
 ### events system
 - determine a way to keep multiple events from targeting the same voice at the same time - as of right now the behavior is undetermined when it comes to this. 
@@ -23,7 +24,8 @@
 ### global tempo and clock
 - i want to implement a global click that we could sync our event triggering with. 
 
-### troubleshooting
+### panning
+- voices should be able to be panned around to fully embrace the orchestra feeling. 
 
 ## refactor
 
