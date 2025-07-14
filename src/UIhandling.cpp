@@ -96,13 +96,6 @@ void Screen::pollMainMenu(){
         printf("trigger n\n"); 
         (*events).newEvent(); 
     }
-    //load events from list
-    if (IsKeyPressed(KEY_L)){
-        printf("trigger l\n"); 
-        menuInfo.loadFile = true; 
-        menuInfo.mainMenu = false;
-        (*events).getFilenames();  
-    }
     if (IsKeyPressed(KEY_Z)){
         if (--piano.octave < 0) piano.octave = 0; 
     } 
@@ -136,17 +129,50 @@ void Screen::pollMainMenu(){
             menuInfo.deleteMenu = true; 
         }
 
-        //trigger next event
-        if (IsKeyPressed(KEY_M)){
-            printf("trigger m\n"); 
-            if ((*events).events.size() > 0)
-                (*events).deployEvent(); 
-            else printf("no events\n"); 
-        }	
         if (IsKeyPressed(KEY_S)){
             printf("trigger s\n"); 
             menuInfo.saveEvent = true; 
             menuInfo.mainMenu = false; 
+        }
+    }
+    if (IsKeyPressed(KEY_P)){
+        if ((*stream).playMode){
+            //close play mode
+            (*events).clearQueue(); 
+            (*events).loadEvents("openedStream.dat"); 
+            system(TextFormat("rm %s/openedStream.dat", (*events).savedEventsPath.c_str())); 
+            if ((*stream).setInitSynth){
+                (*stream).initSynth(); 
+            } else {
+                std::cout << "[WARNING], no init function was set for synth\n"; 
+            }
+        } else {
+            //enter play mode
+            
+            //save inits
+            for (int i = 0; i < (*numVoices); i++){
+                (*stream).info.inits["freq"][i] = (*stream).info.freqs[i]; 
+                (*stream).info.inits["amp"][i] = (*stream).info.amps[i]; 
+            }
+            (*events).saveEvents("openedStream.dat"); 
+        }
+
+        (*stream).playMode = !(*stream).playMode; 
+    }
+    if ((*stream).playMode){
+        if(IsKeyPressed(KEY_M)){
+            if ((*events).events.size() != 0)
+                (*events).deployEvent(); 
+            else 
+                std::cout << "no events to deploy!\n"; 
+        }
+    } else {
+        //load events from list
+        if (IsKeyPressed(KEY_L)){
+            printf("trigger l\n"); 
+            menuInfo.loadFile = true; 
+            menuInfo.mainMenu = false;
+            (*events).getFilenames();  
         }
     }
     pollChange(); 
@@ -279,7 +305,9 @@ bool Screen::pollPianoRoll(){
     else if (IsKeyPressed(KEY_P)){ piano.note = 39 + (12 * (piano.octave - 1)); triggered = true; }
     else if (IsKeyPressed(KEY_SEMICOLON)){ piano.note = 40 + (12 * (piano.octave - 1)); triggered = true; }
     else if (IsKeyPressed(KEY_Q)){ piano.note = -1; triggered = true; }
-    
+    else if (IsKeyPressed(KEY_Z)){ if (--piano.octave < 0) piano.octave = 0; triggered = true; }
+    else if (IsKeyPressed(KEY_X)){ if (++piano.octave > 9) piano.octave--; triggered = true; }
+
     return triggered; 
 }
 
@@ -348,21 +376,38 @@ void Screen::drawEventInfo(int x, int y){
     DrawTextEx(text.bodyFont, "new event [n]", (Vector2){(float) (x), (float)(y + 20)}, 
         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
     
-    DrawTextEx(text.bodyFont, "deploy event (first) [m]", 
-        (Vector2){(float) (x + 125), (float)(y + 20)}, 
-        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    if ((*stream).playMode){
+        DrawTextEx(text.bodyFont, "new event [n]", (Vector2){(float) (x), (float)(y + 20)}, 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    
+        DrawTextEx(text.bodyFont, "deploy event (first) [m]", 
+            (Vector2){(float) (x + 125), (float)(y + 20)}, 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark); 
 
-    DrawTextEx(text.bodyFont, "delete [d]", 
-        (Vector2){(float) (x + 335), (float)(y + 20)}, 
-        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-    
-    DrawTextEx(text.bodyFont, "save [s]", 
-        (Vector2){(float) (x + 430), (float)(y + 20)}, 
-        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-    
-    DrawTextEx(text.bodyFont, "load [l]", 
-        (Vector2){(float) (x + 510), (float)(y + 20)}, 
-        text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+        DrawTextEx(text.bodyFont, "delete [d]", 
+            (Vector2){(float) (x + 335), (float)(y + 20)}, 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+        
+        DrawTextEx(text.bodyFont, "save [s]", 
+            (Vector2){(float) (x + 430), (float)(y + 20)}, 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+        
+        DrawTextEx(text.bodyFont, "load [l]", 
+            (Vector2){(float) (x + 510), (float)(y + 20)}, 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    } else {
+        DrawTextEx(text.bodyFont, "delete [d]", 
+            (Vector2){(float) (x + 130), (float)(y + 20)}, 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+        
+        DrawTextEx(text.bodyFont, "save [s]", 
+            (Vector2){(float) (x + 232), (float)(y + 20)}, 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+        
+        DrawTextEx(text.bodyFont, "load [l]", 
+            (Vector2){(float) (x + 333), (float)(y + 20)}, 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+    }
 
     if ((*events).events.size() == 0){
         DrawRectangle(x + 130, y + 50, 350, 100, color.midToneDark); 
@@ -553,6 +598,8 @@ void Screen::drawLoadFile(int x, int y){
                 (Vector2){(float)(x + 20), (float)(y + 50 + (printIndex * 30))}, 
                 text.bodyFontSize * 1.5, text.bodySpacing, color.dark); 
             
+            DrawTextEx(text.thickFont, ">", {(float)(x + 7), (float)(y + 50)}, 
+                text.titleFontSize, text.titleSpacing, color.dark); 
             printIndex++; 
         }
     }
@@ -667,7 +714,7 @@ void Screen::pollChangeScreen(){
             //there was a note change
             
             //instant change
-            if (IsKeyDown(KEY_RIGHT_SHIFT) or IsKeyDown(KEY_LEFT_SHIFT) or (change.time == 0)){
+            if (IsKeyDown(KEY_RIGHT_SHIFT) or IsKeyDown(KEY_LEFT_SHIFT)){
                 (*events).possibleCommands[0].function(midiToFreq(piano.note), change.voice - 1); 
             } 
             else {

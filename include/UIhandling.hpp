@@ -14,7 +14,7 @@ class Screen{
     Event *events; 
     int *numVoices; 
 
-    int frameCount = 0; 
+    int frameCount = 0;  
     
     public: 
 

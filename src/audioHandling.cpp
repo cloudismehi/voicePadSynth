@@ -30,8 +30,14 @@ Stream::Stream(const int _numVoices){
     info.bucket = new float[_numVoices]; 
     info.bucket2 = new float[_numVoices]; 
 
+    
+
     for (int i = 0; i < _numVoices; i++){
         info.amps[i] = 1.f; 
+        info.freqs[i] = midiToFreq(60.f); 
+        
+        info.inits["freq"].push_back(midiToFreq(60.f)); 
+        info.inits["amp"].push_back(1.f); 
     }
 }  
 
@@ -43,7 +49,12 @@ Stream::~Stream(){
     delete[] info.bucket2; 
 }
 
+void Stream::saveCurrState(){
+    
+}
+
 /* ******************************************************************************** */
+
 Event::Event(Stream &_stream){
     stream = &_stream; 
     (*stream).initCheck += 1; // just set for checks - might delete later 
@@ -128,7 +139,6 @@ void Event::deployEvent(){
         func.voice = events.front().voice.front(); 
         func.changeDur = events.front().time.front(); 
         func.curVal = (*events.front().curVal.front()); 
-        std::cout << (*events.front().curVal.front()) << '\n';
         
         (*stream).modFuncs.push_back(func); 
 
@@ -160,6 +170,12 @@ void Event::deleteCommandFromEvent(int _eventIndex, int _commandIndex){
         events[_eventIndex].isFreq.erase(events[_eventIndex].isFreq.begin() + _commandIndex); 
         events[_eventIndex].curVal.erase(events[_eventIndex].curVal.begin() + _commandIndex); 
         events[_eventIndex].isGlobal.erase(events[_eventIndex].isGlobal.begin() + _commandIndex); 
+    }
+}
+
+void Event::clearQueue(){
+    while(!events.empty()){
+        events.pop_back(); 
     }
 }
 
@@ -366,9 +382,12 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
                 }
             }
         }
-
-        for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex++){
-            outVal += (*audioStream).audioGenFunctions[audioGenIndex](); 
+        if (!(*audioStream).playMode){
+            outVal = 0; 
+        } else {
+            for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex++){
+                outVal += (*audioStream).audioGenFunctions[audioGenIndex](); 
+            }
         }
 		*out++ = outVal * 0.2; 
 	}

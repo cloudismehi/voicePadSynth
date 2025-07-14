@@ -34,6 +34,10 @@ class Envelope{
 class Stream{
     public:
     std::vector< std::function<float()> > audioGenFunctions; 
+    bool playMode = false; 
+
+    std::function<void()> initSynth; 
+    bool setInitSynth = false; 
 
     struct ModifierFunc{
         std::function< void(float, int) > func; 
@@ -49,7 +53,9 @@ class Stream{
         int* notes; 
         float* freqs; 
         float* bucket; 
-        float* bucket2; 
+        float* bucket2;
+        
+        std::unordered_map<std::string, std::vector<float>> inits; 
 
         int numVoices; 
         int sampleRate = 44100; 
@@ -65,8 +71,17 @@ class Stream{
         audioGenFunctions.push_back(func); 
     }
 
+    template<class Obj>
+    void addInitSynth(Obj& obj, void(Obj::*function)()){
+        std::function<void()> func = [&obj, function]() { return (obj.*function)(); };
+        initSynth = func; 
+        setInitSynth = true; 
+    }
+
     Stream(const int _numVoices); 
     ~Stream(); 
+    
+    void saveCurrState(); 
 };
 
 class Event {
@@ -119,6 +134,7 @@ class Event {
 
     void deleteEvent(int _eventIndex); 
     void deleteCommandFromEvent(int _eventIndex, int _commandIndex); 
+    void clearQueue(); 
 
     /*
     order: id/cur/new/time/voice
@@ -129,7 +145,6 @@ class Event {
 
     std::string formatDescriptor(std::string _id, float _newVal, int _voice); 
     
-
     template<class Obj>
     void addPossibleEvent(Obj& obj, void (Obj::*setter)(float, int), 
             std::string _id, std::string _descriptor, bool _isFreq = false, bool _isGlobal = false){

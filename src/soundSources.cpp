@@ -29,9 +29,9 @@ SineOscillator::SineOscillator(Stream &_stream){
 
 void SineOscillator::initSynth(){
     for (int i = 0; i < numVoices; i++){
-        setFreq(midiToFreq(60), i); 
-        setAmp((*stream).info.amps[i], i); 
-        (*stream).info.freqs[i] = midiToFreq((*stream).info.notes[i]); 
+        setFreq((*stream).info.inits.at("freq")[i], i); 
+        setAmp((*stream).info.inits.at("amp")[i], i); 
+        (*stream).info.freqs[i] = (*stream).info.inits.at("freq")[i]; 
     }
     setAmp((*stream).info.totalAmp, -1); 
     init = true; 

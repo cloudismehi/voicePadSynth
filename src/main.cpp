@@ -15,6 +15,7 @@ int numVoices = 3;
 int main(){
 	Pa_Initialize(); 	
 	Stream audioStream(numVoices); 
+	std::cout << audioStream.info.inits.at("freq")[2] << '\n'; 
 
 	Audio audioInstance;
 	if (!audioInstance.init(sampleRate, framesPerBuffer, audioStream)){
@@ -33,14 +34,16 @@ int main(){
 	}
 	
 	audioStream.info.totalAmp = 1.f; 
+	std::cout << "attempting to init\n"; 
 	sineOsc.initSynth(); 
+	std::cout << "init succesful\n"; 
 	
 	events.addPossibleEvent(sineOsc, &SineOscillator::setFreq, "sineOsc_freq", "freq change", true); 
 	events.addPossibleEvent(sineOsc, &SineOscillator::setAmp, "sineOsc_amp", "amp change"); 
 
 	audioStream.addFunction(sineOsc, &SineOscillator::genValue); 
+	audioStream.addInitSynth(sineOsc, &SineOscillator::initSynth); 
 
-	std::cout << audioStream.info.freqs[0] << '\n'; 
 
 	if(!audioInstance.startAudio()){
 		std::cout << "error with starting audio!\n"; 
