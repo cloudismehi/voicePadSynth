@@ -34,7 +34,7 @@ class Envelope{
 class Stream{
     public:
     std::vector< std::function<float()> > audioGenFunctions; 
-    bool playMode = false; 
+    
 
     std::function<void()> initSynth; 
     bool setInitSynth = false; 
@@ -60,6 +60,7 @@ class Stream{
         int numVoices; 
         int sampleRate = 44100; 
         int bitDepth = 32; 
+        bool playMode = false; 
     }; 
     StreamInfo info; 
 
@@ -116,6 +117,10 @@ class Event {
     std::vector<PossibleCommand> possibleCommands; 
     std::vector<Commands> events; 
     std::string savedEventsPath = "assets/events/"; 
+    
+    //name of the file that contains the edit information for the current session, 
+    //used when toggling back and forth between edit and play mode.  
+    std::string openedStreamName = "openedStream.dat";   
     std::vector<std::string> savedEventFilenames; 
 
 
@@ -142,6 +147,8 @@ class Event {
     bool saveEvents(std::string _filename);
     bool loadEvents(std::string _filname); 
     bool getFilenames(); 
+    void enterPlayMode(); 
+    void enterEditMode(); 
 
     std::string formatDescriptor(std::string _id, float _newVal, int _voice); 
     

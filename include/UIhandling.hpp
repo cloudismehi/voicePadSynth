@@ -89,7 +89,6 @@ class Screen{
         int loadFileSelection = 0; 
         int changeScreenSelection = 0; 
 
-        bool mainMenu = true; 
         bool deleteMenu = false; 
         bool deleteCommandMenu = false; 
         bool exitOutOfDeleteMenu = false; 
@@ -130,6 +129,7 @@ class Screen{
     //main menu elements 
     void drawMainWindow(); 
     void pollMainMenu(); 
+    void scrollEvents(); 
     void pollChange(); 
     void drawPianoRoll(int x, int y); 
     bool pollPianoRoll(); 

@@ -47,6 +47,6 @@ there is no UI for the play/edit mode sign. need to choose what controls go wher
 
 **what goes where?**
 
-- **play mode** will have controls for triggering next events, adding new events, adding new commands, and erasing commands or events
+- **play mode** will have controls for triggering next events, adding new commands and events, and erasing commands or events
 - **edit mode** will have controls for adding new commands and events, erasing commands and events, loading and saving commands and events, and previewing current events
   - **command preview** anything that is being set currently will be changed - everything else will be previewed with default values

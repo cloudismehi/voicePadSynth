@@ -278,6 +278,27 @@ bool Event::getFilenames(){
     return true; 
 }
 
+void Event::enterPlayMode(){
+    //save inits
+    for (int i = 0; i < (*stream).info.numVoices; i++){
+        (*stream).info.inits["freq"][i] = (*stream).info.freqs[i]; 
+        (*stream).info.inits["amp"][i] = (*stream).info.amps[i]; 
+    }
+    //save state
+    saveEvents(openedStreamName); 
+}
+
+void Event::enterEditMode(){
+    clearQueue(); 
+    loadEvents(openedStreamName); 
+    system(TextFormat("rm %s/%s", savedEventsPath.c_str(), openedStreamName.c_str())); 
+    if ((*stream).setInitSynth){
+        (*stream).initSynth(); 
+    } else {
+        std::cout << "[WARNING], no init function was set for synth\n"; 
+    }
+}
+
 std::string Event::formatDescriptor(std::string _id, float _newVal, int _voice){
     std::string name = ""; 
     
@@ -382,7 +403,7 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
                 }
             }
         }
-        if (!(*audioStream).playMode){
+        if (!(*audioStream).info.playMode){
             outVal = 0; 
         } else {
             for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex++){
