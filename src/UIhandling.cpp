@@ -379,6 +379,7 @@ void Screen::drawVoiceInfo(int x, int y){
 
 void Screen::drawEventInfo(int x, int y){
     Vector2 measured; 
+    bool isThereEventsQueued = !(*events).events.empty(); 
     //subtitles
     DrawTextEx(text.thickFont, "events", (Vector2){(float)x, (float)y}, 
         text.titleFontSize, text.titleSpacing, color.accent); 
@@ -386,47 +387,47 @@ void Screen::drawEventInfo(int x, int y){
     DrawTextEx(text.bodyFont, "new event [n]", (Vector2){(float) (x), (float)(y + 20)}, 
         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
     measured = MeasureTextEx(text.bodyFont, "new event[n]", text.bodyFontSize, text.bodySpacing); 
+    DrawRectangle(x + 2, y + 40, measured.x, 2, color.midToneDark); 
     
     if ((*stream).info.playMode){   //play mode
         DrawTextEx(text.bodyFont, "goto edit mode[p]", {(float)(x + measured.x + 40), (float)(y + 20)}, 
-            text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark);         
+        DrawRectangle(x + measured.x + 42, y + 40, 132, 2, color.midToneDark);         
+
+        if (isThereEventsQueued){
+            DrawTextEx(text.bodyFont, "trigger event [m]", (Vector2){(float) (x), (float)(y + 160)}, 
+                text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+            DrawRectangle(x + 2, y + 180, 138, 2, color.midToneDark);  
+            measured = MeasureTextEx(text.bodyFont, "trigger event [m]", text.bodyFontSize, text.bodySpacing); 
+
+            DrawTextEx(text.bodyFont, "delete [d]", (Vector2){(float) (x + measured.x + 20), (float)(y + 160)}, 
+                text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+            DrawRectangle(x + measured.x + 22, y + 180, 73, 2, color.midToneDark);  
+        }
+
     } else {                        //edit mode
-        DrawTextEx(text.bodyFont, "goto play mode[p]", {(float)(x + measured.x + 40), (float)(y + 20)}, 
+        DrawTextEx(text.bodyFont, "goto play mode[p]", {(float)(x + measured.x + 20), (float)(y + 20)}, 
+            text.bodyFontSize, text.bodySpacing, color.midToneDark);
+        DrawRectangle(x + measured.x + 22, y + 40, 138, 2, color.midToneDark);  
+
+        Vector2 foo = MeasureTextEx(text.bodyFont, "goto play mode[p]", text.bodyFontSize, text.bodySpacing); 
+        measured.x += foo.x; 
+        
+        DrawTextEx(text.bodyFont, "load file[l]", {(float)(x + measured.x + 35), (float)(y + 20)}, 
             text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+        DrawRectangle(x + measured.x + 37, y + 40, 78, 2, color.midToneDark);  
+
+        if (isThereEventsQueued){
+            DrawTextEx(text.bodyFont, "save events [m]", (Vector2){(float) (x), (float)(y + 160)}, 
+                text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+            DrawRectangle(x + 2, y + 180, 126, 2, color.midToneDark);  
+            measured = MeasureTextEx(text.bodyFont, "save events [m]", text.bodyFontSize, text.bodySpacing); 
+
+            DrawTextEx(text.bodyFont, "delete[d]", {(float)(x + measured.x + 20), (float)(y + 160)}, 
+                text.bodyFontSize, text.bodySpacing, color.midToneDark); 
+            DrawRectangle(x + measured.x + 22, y + 180, 65, 2, color.midToneDark);  
+        }
     }
-
-    // if ((*stream).info.playMode){
-    //     DrawTextEx(text.bodyFont, "new event [n]", (Vector2){(float) (x), (float)(y + 20)}, 
-    //         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-    
-    //     DrawTextEx(text.bodyFont, "deploy event (first) [m]", 
-    //         (Vector2){(float) (x + 125), (float)(y + 20)}, 
-    //         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-
-    //     DrawTextEx(text.bodyFont, "delete [d]", 
-    //         (Vector2){(float) (x + 335), (float)(y + 20)}, 
-    //         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-        
-    //     DrawTextEx(text.bodyFont, "save [s]", 
-    //         (Vector2){(float) (x + 430), (float)(y + 20)}, 
-    //         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-        
-    //     DrawTextEx(text.bodyFont, "load [l]", 
-    //         (Vector2){(float) (x + 510), (float)(y + 20)}, 
-    //         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-    // } else {
-    //     DrawTextEx(text.bodyFont, "delete [d]", 
-    //         (Vector2){(float) (x + 130), (float)(y + 20)}, 
-    //         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-        
-    //     DrawTextEx(text.bodyFont, "save [s]", 
-    //         (Vector2){(float) (x + 232), (float)(y + 20)}, 
-    //         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-        
-    //     DrawTextEx(text.bodyFont, "load [l]", 
-    //         (Vector2){(float) (x + 333), (float)(y + 20)}, 
-    //         text.bodyFontSize, text.bodySpacing, color.midToneDark); 
-    // }
 
     //put events and info on the screen
     if ((*events).events.size() == 0){

@@ -22,11 +22,6 @@
 
 - more oscillator types, filters, lfos, so on and so forth
 
-## live mode?
-
-- (!) a simplified version of the ui where one could move the voices with a lot more ease but less control
-*it's not a bad idea but my goal is to make the whole thing easier to manage, i think i'm approching that point now*.
-
 ## global tempo and clock
 
 - i want to implement a global click that we could sync our event triggering with.
@@ -38,12 +33,6 @@
 ## refactor
 
 ## functionality
-
-### play mode
-
-- **i want to make a "play mode" in the synth**, in this mode it runs through the events and deletes them as they get triggered - the switch can happen automatically or manually - after the "playback" is done, we can exit play mode and see all the events as we had them - this will be the main method for modifying and creating events, the edit mode. play mode will also allow you to add and modify events on the fly but will probably not be the main way to do so.
-
-there is no UI for the play/edit mode sign. need to choose what controls go where and refactor the code to accomodate.
 
 **what goes where?**
 

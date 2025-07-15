@@ -310,12 +310,12 @@ std::string Event::formatDescriptor(std::string _id, float _newVal, int _voice){
         midiToName(freqToMidi(_newVal), _oct, _name); 
         
         name += TextFormat("%s to %s%d on voice %d", (*command).descriptor.c_str(), 
-            _name.c_str(), _oct, _voice);    
+            _name.c_str(), _oct, _voice + 1);    
     } else if (_voice == -1){
         name += TextFormat("global %s to %0.2f", (*command).descriptor.c_str(), _newVal); 
     } else {
         name += TextFormat("%s to %0.2f on voice %d", (*command).descriptor.c_str(), 
-            _newVal, _voice);
+            _newVal, _voice + 1);
     }
 
     return name; 
