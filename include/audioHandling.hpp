@@ -105,7 +105,6 @@ class Event {
         std::vector< std::function<void(float _newVal, int _voice)> > function; 
         
         std::vector< float          > newVal, time; 
-        std::vector< float*         > curVal; 
         std::vector< int            > voice; 
         std::vector< bool           > isFreq; 
         std::vector< bool           > isGlobal; 
@@ -131,8 +130,8 @@ class Event {
     void openEvent(int _eventIndex){ openedEvent = _eventIndex; }
     void closeEvent(){ openedEvent = -1; }
 
-    void addToEvent(int _eventIndex, std::string _id, float &_curVal, float _newVal, float _time, int _voice);
-    void addToEvent(std::string _id, float &_curVal, float _newVal, float _time, int _voice); 
+    void addToEvent(int _eventIndex, std::string _id, float _newVal, float _time, int _voice);
+    void addToEvent(std::string _id, float _newVal, float _time, int _voice); 
     
     void deployEvent(int _eventIndex);
     void deployEvent();

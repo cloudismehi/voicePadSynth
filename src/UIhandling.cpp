@@ -129,6 +129,14 @@ void Screen::pollMainMenu(){
     }
     pollChange(); //adding new commands or new event 
 
+    //print report for trouble shooting
+    if (IsKeyPressed(KEY_W)){
+        for (int i = 0; i < (*stream).info.numVoices; i++){
+            std::cout << (*stream).info.freqs[i] << ' ' << (*stream).info.inits.at("freq")[i] << '\n'; 
+        }
+        std::cout << '\n'; 
+    }
+
     if ((*stream).info.playMode){ //play mode
         
         if (isThereEventsQueued){
@@ -740,8 +748,8 @@ void Screen::pollChangeScreen(){
                 //add to current event
                 else { (*events).openEvent(menuInfo.mainScreenSelection); }
 
-                (*events).addToEvent((*events).possibleCommands[0].id, (*stream).info.freqs[change.voice - 1], 
-                    midiToFreq(piano.note), change.time, change.voice - 1); 
+                (*events).addToEvent((*events).possibleCommands[0].id, midiToFreq(piano.note), 
+                    change.time, change.voice - 1); 
                 (*events).closeEvent(); 
             }
         }
@@ -751,9 +759,8 @@ void Screen::pollChangeScreen(){
             //instant change 
             if (IsKeyDown(KEY_RIGHT_SHIFT) or IsKeyDown(KEY_LEFT_SHIFT)){
                 (*events).openEvent((*events).newEvent()); 
-                float curVal = (change.voice - 1 == -1) ? (*stream).info.totalAmp : (*stream).info.amps[change.voice - 1]; 
-                (*events).addToEvent((*events).possibleCommands[1].id, curVal, change.newAmp, 0.1, change.voice - 1); 
-                (*events).deployEvent((*events).events.size() - 1); 
+                (*events).addToEvent((*events).possibleCommands[1].id, change.newAmp, 0.1, change.voice - 1); 
+                (*events).deployEvent((int)(*events).events.size() - 1); 
                 (*events).closeEvent(); 
             } else {
                 //make a new event if there are no others 
@@ -761,8 +768,7 @@ void Screen::pollChangeScreen(){
                 //add to current event
                 else { (*events).openEvent(menuInfo.mainScreenSelection); }
 
-                float curVal = (change.voice - 1 == -1) ? (*stream).info.totalAmp : (*stream).info.amps[change.voice - 1]; 
-                (*events).addToEvent((*events).possibleCommands[1].id, curVal, change.newAmp, change.time, change.voice - 1); 
+                (*events).addToEvent((*events).possibleCommands[1].id, change.newAmp, change.time, change.voice - 1); 
                 (*events).closeEvent(); 
             }
         }
@@ -853,16 +859,16 @@ void Screen::pollGlobalChangeScreen(){
             if (IsKeyDown(KEY_RIGHT_SHIFT) or IsKeyDown(KEY_LEFT_SHIFT)){
                 (*events).openEvent((*events).newEvent()); 
                 
-                (*events).addToEvent((*events).possibleCommands[1].id, (*stream).info.totalAmp, change.newAmp, 0.1, -1); 
+                (*events).addToEvent((*events).possibleCommands[1].id, change.newAmp, 0.1, -1); 
                 (*events).closeEvent(); 
-                (*events).deployEvent((*events).events.size() - 1); 
+                (*events).deployEvent((int)(*events).events.size() - 1); 
             } else {
                 //make a new event if there are no others 
                 if ((*events).events.size() == 0){ (*events).openEvent((*events).newEvent()); }
                 //add to current event
                 else { (*events).openEvent(menuInfo.mainScreenSelection); }
 
-                (*events).addToEvent((*events).possibleCommands[1].id, (*stream).info.totalAmp, change.newAmp, change.time, -1); 
+                (*events).addToEvent((*events).possibleCommands[1].id, change.newAmp, change.time, -1); 
                 (*events).closeEvent(); 
             }
         }
