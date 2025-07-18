@@ -29,13 +29,16 @@ Stream::Stream(const int _numVoices){
     info.freqs = new float[_numVoices]; 
     info.bucket = new float[_numVoices]; 
     info.bucket2 = new float[_numVoices]; 
-
+    info.pannings = new float[_numVoices]; 
     
-
+    float subdiv = 1.f / (_numVoices - 1); 
+    float off = 0.f; 
     for (int i = 0; i < _numVoices; i++){
         info.amps[i] = 1.f; 
         info.freqs[i] = midiToFreq(60.f); 
-        
+        info.pannings[i] = off + ( subdiv * i); 
+        std::cout << info.pannings[i] << '\n'; 
+
         info.inits["freq"].push_back(midiToFreq(60.f)); 
         info.inits["amp"].push_back(1.f); 
     }
@@ -343,7 +346,7 @@ std::string Event::formatDescriptor(std::string _id, float _newVal, int _voice){
 bool Audio::init(int sampleRate, int framesPerBuffer, Stream &_stream)
 {
     Stream* stream = &_stream; 
-	paErr = Pa_OpenDefaultStream(&paStream, 0, 1, paFloat32, sampleRate, 
+	paErr = Pa_OpenDefaultStream(&paStream, 0, 2, paFloat32, sampleRate, 
 		framesPerBuffer, callback, &_stream); 
 	if (checkPaError(paErr)) return false; 
     
@@ -399,7 +402,8 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
     }
     
 	for (int i = 0; i < framesPerBuffer; i++){
-        float outVal = 0; 
+        float outVal_L = 0; 
+        float outVal_R = 0; 
         
         for (int p = 0; p < modifierFunc.size(); ++p){
             if (modifierFunc[p].changeDur != 0){
@@ -421,13 +425,17 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
             }
         }
         if (!(*audioStream).info.playMode){
-            outVal = 0; 
+            outVal_L = 0; 
         } else {
             for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex++){
-                outVal += (*audioStream).audioGenFunctions[audioGenIndex](); 
+                float audioFrame = (*audioStream).audioGenFunctions[audioGenIndex]();  
+                outVal_L += audioFrame * (1.f - (*audioStream).info.pannings[audioGenIndex]); 
+                outVal_R += audioFrame * ((*audioStream).info.pannings[audioGenIndex] - 1.f); 
             }
         }
-		*out++ = outVal * 0.2; 
+        
+		*out++ = outVal_L * 0.2; 
+        *out++ = outVal_R * 0.2; 
 	}
 
 	return 0; 

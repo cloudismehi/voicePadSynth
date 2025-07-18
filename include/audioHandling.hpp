@@ -50,6 +50,7 @@ class Stream{
     struct StreamInfo{
         float* amps; 
         float totalAmp; 
+        float *pannings; 
         int* notes; 
         float* freqs; 
         float* bucket; 

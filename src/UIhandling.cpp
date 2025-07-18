@@ -46,6 +46,7 @@ void Screen::update(){
     else {
         pollMainMenu();     
     }
+    
 }
 
 void Screen::loadFonts(){
