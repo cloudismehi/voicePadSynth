@@ -50,9 +50,9 @@ class Stream{
     struct StreamInfo{
         float* amps; 
         float totalAmp; 
-        float *pannings; 
         int* notes; 
         float* freqs; 
+        float* pannings; 
         float* bucket; 
         float* bucket2;
         
@@ -83,7 +83,7 @@ class Stream{
     Stream(const int _numVoices); 
     ~Stream(); 
     
-    void saveCurrState(); 
+    void changePanning(float _newVal, int _voice); 
 };
 
 class Event {

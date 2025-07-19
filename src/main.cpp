@@ -38,14 +38,19 @@ int main(){
 	
 	events.addPossibleEvent(sineOsc, &SineOscillator::setFreq, "sineOsc_freq", "freq change", true); 
 	events.addPossibleEvent(sineOsc, &SineOscillator::setAmp, "sineOsc_amp", "amp change"); 
+	events.addPossibleEvent(sineOsc, &SineOscillator::setPan, "sineOsc_pan", "pan change"); 
 
-	audioStream.addFunction(sineOsc, &SineOscillator::genValue); 
+	audioStream.addFunction(sineOsc, &SineOscillator::genValue_L); 
+	audioStream.addFunction(sineOsc, &SineOscillator::genValue_R); 
 	audioStream.addInitSynth(sineOsc, &SineOscillator::initSynth); 
-
 
 	if(!audioInstance.startAudio()){
 		std::cout << "error with starting audio!\n"; 
 	}
+
+	events.openEvent(events.newEvent());
+	events.addToEvent("sineOsc_pan", 1.f, 1.f, 0); 
+	events.closeEvent(); 
 
 	InitWindow(screenWidth, screenHeight, "tito"); 
 	screen.loadFonts(); 

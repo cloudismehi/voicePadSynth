@@ -37,10 +37,11 @@ Stream::Stream(const int _numVoices){
         info.amps[i] = 1.f; 
         info.freqs[i] = midiToFreq(60.f); 
         info.pannings[i] = off + ( subdiv * i); 
-        std::cout << info.pannings[i] << '\n'; 
+        // info.pannings[i] = 1.f; 
 
         info.inits["freq"].push_back(midiToFreq(60.f)); 
         info.inits["amp"].push_back(1.f); 
+        info.inits["pan"].push_back(0.f); 
     }
 }  
 
@@ -50,10 +51,7 @@ Stream::~Stream(){
     delete[] info.freqs; 
     delete[] info.bucket; 
     delete[] info.bucket2; 
-}
-
-void Stream::saveCurrState(){
-    
+    delete[] info.pannings; 
 }
 
 /* ******************************************************************************** */
@@ -150,9 +148,13 @@ void Event::deployEvent(){
         func.changeDur = events.front().time.front(); 
         
         func.curVal = 0; 
+        std::string command = events.front().commandNames.front(); 
         if (events.front().isFreq.front()){
             func.curVal = (*stream).info.freqs[events.front().voice.front()]; 
-        } else { //has to be amp change
+        } else if (command.substr(command.size()-3, 3) == "pan"){
+            func.curVal = 0.f; 
+        }
+        else { //has to be amp change
             if (events.front().voice.front() == -1){
                 func.curVal= (*stream).info.totalAmp; 
             } else {
@@ -426,11 +428,14 @@ int Audio::callback(const void* inputBuffer, void* outputBuffer,
         }
         if (!(*audioStream).info.playMode){
             outVal_L = 0; 
+            outVal_R = 0; 
         } else {
-            for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex++){
-                float audioFrame = (*audioStream).audioGenFunctions[audioGenIndex]();  
-                outVal_L += audioFrame * (1.f - (*audioStream).info.pannings[audioGenIndex]); 
-                outVal_R += audioFrame * ((*audioStream).info.pannings[audioGenIndex] - 1.f); 
+            for (int audioGenIndex = 0; audioGenIndex < audioStream->audioGenFunctions.size(); audioGenIndex+=2){
+                // float audioFrame = (*audioStream).audioGenFunctions[audioGenIndex]();  
+                // outVal_R += audioFrame; 
+                // outVal_L += audioFrame; 
+                outVal_L += (*audioStream).audioGenFunctions[audioGenIndex]();
+                outVal_R += (*audioStream).audioGenFunctions[audioGenIndex + 1]();
             }
         }
         

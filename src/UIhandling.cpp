@@ -133,7 +133,8 @@ void Screen::pollMainMenu(){
     //print report for trouble shooting
     if (IsKeyPressed(KEY_W)){
         for (int i = 0; i < (*stream).info.numVoices; i++){
-            std::cout << (*stream).info.freqs[i] << ' ' << (*stream).info.inits.at("freq")[i] << '\n'; 
+            std::cout << (*stream).info.pannings[i] << ' ' << (*stream).info.inits.at("pan")[i] << '\n'; 
+
         }
         std::cout << '\n'; 
     }

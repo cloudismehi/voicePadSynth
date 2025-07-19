@@ -17,7 +17,8 @@ class SineOscillator{
     SineOscillator(Stream &_stream); 
     void initSynth(); 
 
-	float genValue(); 
+	float genValue_R(); 
+	float genValue_L(); 
 	void updateOffsets(); 
 
     void setFreq(float _freq, int _voice); 
@@ -28,6 +29,7 @@ class SineOscillator{
     (independent of individual) amplitudes
     */
     void setAmp(float _amp, int _voice); 
+    void setPan(float _pan, int _voice); 
 
 	~SineOscillator(); 
 
