@@ -40,6 +40,8 @@
 - **edit mode** will have controls for adding new commands and events, erasing commands and events, loading and saving commands and events, and previewing current events
   - **command preview** anything that is being set currently will be changed - everything else will be previewed with default values
 
-**MAIN FOCUS**, i need to find a way to upgrade all the changes to accept more than just frequency or amplitude changes - this is a big overhaul because i hard coded a lot of things with if else statements that evaluated isFreq and else it made an amplitude change
+## extra functionality
+
+- i need to find a way to upgrade all the changes to accept more than just frequency or amplitude changes - this is a big overhaul because i hard coded a lot of things with if else statements that evaluated isFreq and else it made an amplitude change
 
 ## trouble

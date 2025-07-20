@@ -102,6 +102,7 @@ class Screen{
     struct Change{
         int voice = 0; 
         float newAmp = -1; 
+        float newPan = -1; 
         float time = 0; 
         float incr = 0.1; 
         float timeIncr = 0.1; 
@@ -116,6 +117,7 @@ class Screen{
             time = 0; 
             incr = 0.1; 
             timeIncr = 0.1; 
+            newPan = -1; 
         }
     }; 
     Change change; 

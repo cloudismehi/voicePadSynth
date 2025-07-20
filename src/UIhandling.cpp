@@ -687,6 +687,12 @@ void Screen::drawChangeScreen(int x, int y){
     DrawTextEx(text.bodyFont, "[left/right arrow keys : change | shift + left/right : reset]", 
         {(float)(x + 15), (float)(y + 118)}, text.bodyFontSize, text.bodySpacing, color.dark); 
     
+    _newAmp = (change.newPan == -1) ? "new pan : ?" :  TextFormat("new pan : %0.2f", change.newPan);         
+    DrawTextEx(text.thickFont, _newAmp.c_str(), {(float)(x + 5), (float)(y + 140)}, 
+        text.titleFontSize, text.titleSpacing, color.dark); 
+    DrawTextEx(text.bodyFont, "[option + left/right arrow keys : change | shift + option + left/right : reset]", 
+        {(float)(x + 15), (float)(y + 158)}, text.bodyFontSize, text.bodySpacing, color.dark); 
+    
     DrawTextEx(text.bodyFont, "[use shift + enter to change instantly]", {(float)(x+5), (float)(y + 225)}, 
         text.bodyFontSize, text.bodySpacing, color.dark); 
     
@@ -696,31 +702,34 @@ void Screen::pollChangeScreen(){
     
     pollPianoRoll(); 
     if (IsKeyPressed(KEY_DOWN)){
-        if (change.newAmp == -1) change.newAmp = 0; 
         if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
             change.newAmp = -1; 
-        }
-        else {
+        } else if (IsKeyDown(KEY_LEFT_ALT) or IsKeyDown(KEY_RIGHT_ALT)){
+            change.newPan = -1; 
+        } else {
+            if (change.newAmp == -1) change.newAmp = 0; 
             if ((change.newAmp -= change.incr) < 0) change.newAmp = 0; 
         }
     }
     if (IsKeyPressed(KEY_UP)){
-        if (change.newAmp == -1) change.newAmp = 1; 
         if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
             change.newAmp = -1; 
+        } else if (IsKeyDown(KEY_LEFT_ALT) or IsKeyDown(KEY_RIGHT_ALT)){
+            change.newPan = -1; 
         }
         else {
+            if (change.newAmp == -1) change.newAmp = 1; 
             if ((change.newAmp += change.incr) > 1) change.newAmp = 1; 
         }
     }
     if (IsKeyPressed(KEY_LEFT)){
         if (IsKeyDown(KEY_LEFT_SHIFT) or IsKeyDown(KEY_RIGHT_SHIFT)){
             change.time = 0; 
-        }
+        } 
         else if (IsKeyDown(KEY_LEFT_ALT) or IsKeyDown(KEY_RIGHT_ALT)){
-            if ((change.time -= change.largeTimeIncr) < 0) change.time = 0; 
-        }
-        else {
+            if (change.newPan == -1) change.newPan = 0; 
+            else if ((change.newPan -= change.incr) < 0) change.newPan = 0; 
+        } else {
             if ((change.time -= change.timeIncr) < 0) change.time = 0; 
         }
     }
@@ -729,7 +738,8 @@ void Screen::pollChangeScreen(){
             change.time = 0; 
         } 
         else if (IsKeyDown(KEY_LEFT_ALT) or IsKeyDown(KEY_RIGHT_ALT)){
-            change.time += change.largeTimeIncr; 
+            if (change.newPan == -1) change.newPan = 1; 
+            else if ((change.newPan += change.incr) > 1.f) change.newPan = 1.f; 
         }
         else {
             change.time += change.timeIncr; 
@@ -771,6 +781,25 @@ void Screen::pollChangeScreen(){
                 else { (*events).openEvent(menuInfo.mainScreenSelection); }
 
                 (*events).addToEvent((*events).possibleCommands[1].id, change.newAmp, change.time, change.voice - 1); 
+                (*events).closeEvent(); 
+            }
+        }
+        if (change.newPan != -1){
+            //there was a pan change
+
+            //instant change 
+            if (IsKeyDown(KEY_RIGHT_SHIFT) or IsKeyDown(KEY_LEFT_SHIFT)){
+                (*events).openEvent((*events).newEvent()); 
+                (*events).addToEvent((*events).possibleCommands[2].id, change.newPan, 0.1, change.voice - 1); 
+                (*events).deployEvent((int)(*events).events.size() - 1); 
+                (*events).closeEvent(); 
+            } else {
+                //make a new event if there are no others 
+                if ((*events).events.size() == 0){ (*events).openEvent((*events).newEvent()); }
+                //add to current event
+                else { (*events).openEvent(menuInfo.mainScreenSelection); }
+
+                (*events).addToEvent((*events).possibleCommands[2].id, change.newPan, change.time, change.voice - 1); 
                 (*events).closeEvent(); 
             }
         }
