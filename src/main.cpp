@@ -48,10 +48,6 @@ int main(){
 		std::cout << "error with starting audio!\n"; 
 	}
 
-	events.openEvent(events.newEvent());
-	events.addToEvent("sineOsc_pan", 1.f, 1.f, 0); 
-	events.closeEvent(); 
-
 	InitWindow(screenWidth, screenHeight, "tito"); 
 	screen.loadFonts(); 
 	SetTargetFPS(30); 

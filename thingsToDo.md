@@ -26,22 +26,6 @@
 
 - i want to implement a global click that we could sync our event triggering with.
 
-## panning
+## project layout
 
-- voices should be able to be panned around to fully embrace the orchestra feeling. as of right now they are panned around automatically, but the panning can't be controlled - before this control can happen i need to figure out the extra changes.
-
-## refactor
-
-## functionality
-
-**what goes where?**
-
-- **play mode** will have controls for triggering next events, adding new commands and events, and erasing commands or events
-- **edit mode** will have controls for adding new commands and events, erasing commands and events, loading and saving commands and events, and previewing current events
-  - **command preview** anything that is being set currently will be changed - everything else will be previewed with default values
-
-## extra functionality
-
-- i need to find a way to upgrade all the changes to accept more than just frequency or amplitude changes - this is a big overhaul because i hard coded a lot of things with if else statements that evaluated isFreq and else it made an amplitude change
-
-## trouble
+i want events to be triggered through some sort of timing system, with a piano roll window to program the events to be played. at some point we could have a "live mode" that does what the synth does now but what i want is for everything to work on some sort of timing system instead. 
