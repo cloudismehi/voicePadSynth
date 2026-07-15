@@ -34,7 +34,6 @@ class Envelope{
 class Stream{
     public:
     std::vector< std::function<float()> > audioGenFunctions; 
-    
 
     std::function<void()> initSynth; 
     bool setInitSynth = false; 
@@ -83,7 +82,6 @@ class Stream{
     Stream(const int _numVoices); 
     ~Stream(); 
     
-    void changePanning(float _newVal, int _voice); 
 };
 
 class Event {

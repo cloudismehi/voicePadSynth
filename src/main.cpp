@@ -51,8 +51,6 @@ int main(){
 	InitWindow(screenWidth, screenHeight, "tito"); 
 	screen.loadFonts(); 
 	SetTargetFPS(30); 
-
-	// system("clear"); 
 	
 	while (!WindowShouldClose()){
 		BeginDrawing(); 

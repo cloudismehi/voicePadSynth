@@ -41,7 +41,7 @@ Stream::Stream(const int _numVoices){
 
         info.inits["freq"].push_back(midiToFreq(60.f)); 
         info.inits["amp"].push_back(1.f); 
-        info.inits["pan"].push_back(0.f); 
+        info.inits["pan"].push_back(info.pannings[i]); 
     }
 }  
 

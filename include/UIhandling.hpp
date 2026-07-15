@@ -4,7 +4,6 @@
 
 #include <raylib.h>
 
-
 #include "audioHandling.hpp"
 
 class Screen{
